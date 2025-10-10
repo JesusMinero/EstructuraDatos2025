@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Listas Ligadas Simples</title>
+    <!-- Carga de Tailwind CSS para estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos personalizados para el Canvas y la Interfaz */
+        #listCanvas {
+            border: 2px solid #3b82f6; /* Borde azul */
+            background-color: #e0f2f1; /* Fondo claro */
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            display: block;
+        }
+
+        /* Clase para animaciones */
+        .flash-yellow {
+            animation: flash 0.5s 3;
+        }
+        @keyframes flash {
+            0%, 100% { background-color: #e0f2f1; }
+            50% { background-color: #fcd34d; }
+        }
+
+        /* Estilo para el contenedor de la lista */
+        .list-container {
+            overflow-x: auto; /* Permite desplazamiento horizontal si la lista es muy larga */
+            padding-bottom: 20px;
+        }
+
+        /* Estilos para el bloque de código del algoritmo */
+        #algorithmDisplay pre {
+            background-color: #f4f4f5; /* gray-100 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            border: 1px solid #e4e4e7; /* gray-200 */
+        }
+        #algorithmDisplay h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* semi-bold */
+            margin-bottom: 0.5rem;
+            color: #1f2937; /* gray-800 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans p-4 sm:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-extrabold text-blue-800 mb-2">Simulador de Listas Ligadas Simples</h1>
+        <p class="text-gray-600 mb-6">Visualice las operaciones fundamentales de las estructuras de datos dinámicas.</p>
+
+        <!-- Controles de Usuario -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            
+            <input type="number" id="dataInput" placeholder="Valor del nodo (INFO)" 
+                   class="col-span-1 md:col-span-3 lg:col-span-2 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" 
+                   value="10">
+
+            <input type="number" id="refInput" placeholder="Valor de referencia (REF)" 
+                   class="col-span-1 md:col-span-3 lg:col-span-1 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" 
+                   value="20">
+
+            <!-- Operación de Creación de Lista Completa -->
+            <button onclick="handleOperation('createListCycle')" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150 col-span-1 md:col-span-2 lg:col-span-2">
+                CREAR LISTA (Ciclo)
+            </button>
+
+            <!-- Operaciones de Inserción Individual -->
+            <button onclick="handleOperation('insertStart')" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Inserta Inicio
+            </button>
+            <button onclick="handleOperation('insertEnd')" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Inserta Final
+            </button>
+            <button onclick="handleOperation('insertAfter')" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Inserta Después de REF
+            </button>
+            <button onclick="handleOperation('insertBefore')" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Inserta Antes de REF
+            </button>
+
+
+            <!-- Operaciones de Eliminación -->
+            <button onclick="handleOperation('deleteStart')" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Elimina Inicio
+            </button>
+            <button onclick="handleOperation('deleteEnd')" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Elimina Final
+            </button>
+            <button onclick="handleOperation('deleteByValue')" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Elimina Nodo X
+            </button>
+            <button onclick="handleOperation('deleteAfter')" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Elimina Después de REF
+            </button>
+            <button onclick="handleOperation('deleteBefore')" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Elimina Antes de REF
+            </button>
+            
+            <!-- Utilidades -->
+            <button onclick="handleOperation('search')" 
+                    class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Buscar X
+            </button>
+            <button onclick="handleOperation('showTraversal')" 
+                    class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Mostrar Recorrido
+            </button>
+            <button onclick="handleOperation('clear')" 
+                    class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
+                Vaciar Lista
+            </button>
+        </div>
+
+        <!-- Área de Visualización y Mensajes -->
+        <div class="bg-white p-6 rounded-xl shadow-xl">
+            <div id="messageBox" class="p-3 mb-4 bg-blue-100 text-blue-700 rounded-lg font-medium">
+                Listo para simular. ¡Crea tu primer nodo!
+            </div>
+            <div class="list-container">
+                <canvas id="listCanvas"></canvas>
+            </div>
+            <div id="statusInfo" class="mt-4 text-sm text-gray-500">
+                Estado: Lista con 0 nodos.
+            </div>
+        </div>
+        
+        <!-- Sección de Algoritmo (Nueva) -->
+        <div id="algorithmSection" class="mt-8 p-6 bg-white rounded-xl shadow-xl">
+            <div id="algorithmDisplay">
+                <h3>Pseudocódigo del Algoritmo</h3>
+                <pre class="text-sm text-gray-800">Presiona un botón para ver el pseudocódigo correspondiente.</pre>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================================
+        // CONSTANTES DE CANVAS
+        // ==========================================================
+        const NODE_WIDTH = 80;
+        const NODE_HEIGHT = 40;
+        const POINTER_HEIGHT = 20;
+        const POINTER_LABEL_OFFSET = 25;
+        const ARROW_LENGTH = 30;
+        const HORIZONTAL_GAP = 70; // Espacio entre nodos
+        const CANVAS_HEIGHT = 200;
+        const TEXT_COLOR = '#1f2937'; // gray-800
+        const HEAD_COLOR = '#f59e0b'; // amber-500 (P)
+        const TEMP_COLOR = '#ef4444'; // red-500 (Q/T)
+        const NODE_COLOR = '#34d399'; // emerald-400
+
+        let canvas = null;
+        let ctx = null;
+        let scale = 1.0;
+
+        // ==========================================================
+        // PSEUDOCÓDIGOS (Basados en la metodología Cairo y Guajardo)
+        // ==========================================================
+        const ALGORITHMS = {
+            // ALGORITMOS DE CREACIÓN DE LISTA (CREAINICIO / CREAFINAL)
+            'createListCycle': {
+                title: "CREALISTA (Inserción Correcta en Ciclo: CREAFINAL)",
+                code: `// Algoritmo de su presentación para crear la lista inicial, insertando al final.
+1. CREA(P)
+2. LEER P^.INFORMACION
+3. P^.LIGA = NILL Y T = P // T marca el final
+4. REPETIR
+    CREAR(Q)
+    LEER Q^.INFORMACION
+    Q^.LIGA = NILL
+    T^.LIGA = Q // El anterior apunta al nuevo
+    T = Q // T avanza al nuevo final
+5. HASTA QUE NO HAY INFORMACION`
+            },
+            'CREAINICIO_FULL': {
+                title: "1. Crear Lista (Inserción Inversa: CREAINICIO)",
+                code: `// Se asume que el usuario ingresará datos repetidamente hasta decir 'no'.
+CREA(P)
+LEER P^.INFORMACION
+P^.LIGA = NILL
+REPETIR
+    CREAR(Q)
+    LEER Q^.INFORMACION
+    Q^.LIGA = P
+    P = Q // P se mueve al nuevo nodo
+HASTA QUE NO HAY INFORMACION`
+            },
+            
+            // ALGORITMO DE RECORRIDO (MostrarLista)
+            'showTraversal': {
+                title: "MostrarLista / Recorrido de la Lista",
+                code: `1. Q = P
+2. REPETIR MIENTRAS Q <> NILL
+    ESCRIBIR Q^.INFORMACION
+    Q = Q^.LIGA
+FIN_CICLO`
+            },
+
+            // ALGORITMOS INDIVIDUALES DE INSERCIÓN (Lista Existente)
+            'insertStart': {
+                title: "InsertaInicio (Lista existente)",
+                code: `CREAR(Q)
+Q^.INFORMACION = DATO
+Q^.LIGA = P
+P = Q`
+            },
+            'insertEnd': {
+                title: "InsertaFinal (Lista existente)",
+                code: `T = P
+REPETIR MIENTRAS T^.LIGA <> NILL // Recorrido hasta el penúltimo
+    T = T^.LIGA
+FIN_CICLO
+CREAR(Q)
+Q^.INFORMACION = DATO
+Q^.LIGA = NILL
+T^.LIGA = Q // Enlaza el último nodo al nuevo`
+            },
+            'insertAfter': {
+                title: "InsertaDespuesX (Inserta después de REF)",
+                code: `Q = P
+REPETIR MIENTRAS (Q^.INFORMACION <> REF) Y (Q <> NILL)
+    Q = Q^.LIGA
+FIN_CICLO
+SI Q <> NILL
+    ENTONCES
+        CREAR(T)
+        T^.INFORMACION = DATO
+        T^.LIGA = Q^.LIGA // El nuevo nodo apunta al sucesor de Q
+        Q^.LIGA = T      // Q apunta al nuevo nodo
+    SI_NO
+        ESCRIBIR "Referencia no encontrada"`
+            },
+            'insertBefore': {
+                title: "InsertaAntesX (Inserta antes de REF)",
+                code: `Q = P, T = NILL
+SI P^.INFORMACION = REF
+    ENTONCES
+        // Caso especial: Insertar antes de la cabecera
+    SI_NO
+        REPETIR MIENTRAS (Q^.INFORMACION <> REF) Y (Q <> NILL)
+            T = Q // T es el nodo anterior a Q
+            Q = Q^.LIGA
+        FIN_CICLO
+        SI Q <> NILL
+            ENTONCES
+                CREAR(X)
+                X^.INFORMACION = DATO
+                T^.LIGA = X // El anterior de Q apunta a X
+                X^.LIGA = Q
+            SI_NO
+                ESCRIBIR "Referencia no encontrada"`
+            },
+
+            // ALGORITMOS DE ELIMINACIÓN
+            'deleteStart': {
+                title: "EliminaPrimer (Elimina el primer nodo)",
+                code: `SI P <> NILL
+    ENTONCES
+        Q = P
+        P = Q^.LIGA // P salta al segundo nodo
+        QUITA(Q)
+    SI_NO
+        ESCRIBIR "Lista vacía"`
+            },
+            'deleteEnd': {
+                title: "EliminaUltimo (Elimina el último nodo)",
+                code: `SI P^.LIGA = NILL
+    ENTONCES
+        QUITA(P), P = NILL // Lista con un solo nodo
+    SI_NO
+        T = NILL, Q = P
+        REPETIR MIENTRAS Q^.LIGA <> NILL
+            T = Q // T se queda en el penúltimo
+            Q = Q^.LIGA // Q llega al último
+        FIN_CICLO
+        T^.LIGA = NILL // Desconecta el penúltimo
+        QUITA(Q)`
+            },
+            'deleteByValue': {
+                title: "EliminaNodoX (Elimina nodo con valor X)",
+                code: `Q = P, T = NILL
+REPETIR MIENTRAS (Q^.INFORMACION <> X) Y (Q <> NILL)
+    T = Q
+    Q = Q^.LIGA
+FIN_CICLO
+SI Q <> NILL // Elemento encontrado
+    ENTONCES
+        SI P = Q // Si es el primer nodo
+            ENTONCES P = Q^.LIGA
+            SI_NO T^.LIGA = Q^.LIGA // T salta el nodo Q
+        FIN_CONDICIONAL
+        QUITA(Q)`
+            },
+            'deleteAfter': {
+                title: "EliminaDespuesX (Elimina nodo después de REF)",
+                code: `Q = P
+REPETIR MIENTRAS (Q^.INFORMACION <> REF) Y (Q <> NILL)
+    Q = Q^.LIGA
+FIN_CICLO
+SI Q <> NILL Y Q^.LIGA <> NILL 
+    ENTONCES
+        T = Q^.LIGA // T es el nodo a eliminar
+        Q^.LIGA = T^.LIGA // Q salta a T.LIGA
+        QUITA(T)
+    SI_NO
+        ESCRIBIR "Referencia no encontrada o es el último nodo"`
+            },
+            'deleteBefore': {
+                title: "EliminaAntesX (Elimina nodo antes de REF)",
+                code: `SI P^.INFORMACION = REF
+    ENTONCES ESCRIBIR "No existe predecesor"
+    SI_NO
+        R = P, T = P^.LIGA, Q = T^.LIGA // Configura 3 punteros
+        // ... Lógica de búsqueda avanzada ...
+        SI (Q^.INFORMACION = REF) 
+            ENTONCES
+                R^.LIGA = Q // R (anterior de T) ahora apunta a Q
+                QUITA(T) // Elimina T (el nodo antes de Q)
+            SI_NO
+                ESCRIBIR "Referencia no encontrada..."`
+            },
+            'search': {
+                title: "Busqueda (Búsqueda de un elemento)",
+                code: `Q = P, BAND = TRUE
+REPETIR MIENTRAS (Q^.INFORMACION <> X) y (BAND = TRUE)
+    SI Q^.LIGA <> NILL
+        ENTONCES Q = Q^.LIGA
+        SI_NO BAND = FALSO
+    FIN_CONDICIONAL
+FIN_CICLO
+SI BAND = FALSO
+    ENTONCES ESCRIBIR "Elemento no fue encontrado"
+    SI_NO ESCRIBIR "El elemento está en la lista"`
+            },
+            'clear': {
+                title: "Vaciar Lista",
+                code: `P = NILL`
+            }
+        };
+
+        // ==========================================================
+        // CLASES DE ESTRUCTURA DE DATOS (MODELO)
+        // ==========================================================
+
+        // Clase Nodo (Estructura con INFO y LIGA)
+        class Node {
+            constructor(data) {
+                this.data = data; // Campo INFO
+                this.next = null; // Campo LIGA (puntero)
+                this.x = 0;       // Posición para Canvas
+                this.y = 0;
+            }
+        }
+
+        // Clase Lista Ligada Simple
+        class LinkedList {
+            constructor() {
+                this.head = null; // Puntero P
+                this.length = 0;
+            }
+
+            // Mapea la lista a un array para facilitar el renderizado
+            toArray() {
+                const nodes = [];
+                let current = this.head;
+                while (current) {
+                    nodes.push(current);
+                    current = current.next;
+                }
+                return nodes;
+            }
+
+            // Simula el algoritmo CREALISTA / CREAFINAL en un solo clic.
+            createListInCycle(initialData) {
+                // Se asume que initialData es un array de números [10, 20, 30]
+                if (initialData.length === 0) return "No se proporcionaron datos para crear la lista.";
+                
+                // 1. CREA(P) & 2. LEER P^.INFORMACION (Primer nodo)
+                let P = new Node(initialData[0]);
+                this.head = P;
+                this.length = 1;
+                
+                // 3. P^.LIGA = NILL Y T = P
+                let T = P;
+
+                // 4. REPETIR (para el resto de los datos)
+                for (let i = 1; i < initialData.length; i++) {
+                    const data = initialData[i];
+                    // CREAR(Q)
+                    let Q = new Node(data);
+                    // Q^.LIGA = NILL (Ya es por defecto)
+                    T.next = Q; // T^.LIGA = Q
+                    T = Q; // T = Q
+                    this.length++;
+                }
+                return `Lista creada con ${initialData.length} nodos: [${initialData.join(', ')}].`;
+            }
+
+            // La lógica de showTraversal solo es para mostrar el algoritmo.
+            showTraversal() {
+                if (!this.head) {
+                    return "Recorrido: La lista está vacía.";
+                }
+                const elements = this.toArray().map(n => n.data).join(", ");
+                return `Recorrido: [${elements}]. (Vea el algoritmo abajo)`;
+            }
+
+            // --- Operaciones de Inserción ---
+
+            insertAtStart(data) {
+                const newNode = new Node(data);
+                newNode.next = this.head; // Q^.LIGA = P
+                this.head = newNode;      // P = Q
+                this.length++;
+                return `Elemento ${data} insertado al **Inicio**.`;
+            }
+
+            insertAtEnd(data) {
+                const newNode = new Node(data);
+                this.length++;
+
+                if (!this.head) {
+                    this.head = newNode;
+                    return `Elemento ${data} insertado al **Final** (Lista vacía).`;
+                }
+
+                let T = this.head; // T = P
+                while (T.next) { // Recorrido hasta el final
+                    T = T.next;
+                }
+                T.next = newNode; // T^.LIGA = Q
+                return `Elemento ${data} insertado al **Final**.`;
+            }
+
+            insertAfter(data, refValue) {
+                if (!this.head) {
+                    return `Error: Lista vacía. No se puede insertar después de ${refValue}.`;
+                }
+
+                let Q = this.head; // Q = P
+                while (Q && Q.data !== refValue) { // Búsqueda de REF
+                    Q = Q.next;
+                }
+
+                if (Q) {
+                    const T = new Node(data); // CREA(T)
+                    T.next = Q.next;           // T^.LIGA = Q^.LIGA
+                    Q.next = T;                // Q^.LIGA = T
+                    this.length++;
+                    return `Elemento ${data} insertado **después** de ${refValue}.`;
+                } else {
+                    return `Error: Referencia ${refValue} no encontrada.`;
+                }
+            }
+            
+            // Método: Inserta Antes de REF
+            insertBefore(data, refValue) {
+                if (!this.head) {
+                    return `Error: Lista vacía. No se puede insertar antes de ${refValue}.`;
+                }
+
+                // Caso 1: Insertar antes del primer nodo
+                if (this.head.data === refValue) {
+                    this.insertAtStart(data);
+                    return `Elemento ${data} insertado **antes** de ${refValue} (Nuevo inicio).`;
+                }
+
+                // Caso 2: Búsqueda en el resto de la lista (utiliza T como anterior)
+                let T = null; 
+                let Q = this.head; 
+
+                while (Q && Q.data !== refValue) {
+                    T = Q; 
+                    Q = Q.next; 
+                }
+
+                if (Q) {
+                    const X = new Node(data); // CREAR(X)
+                    
+                    T.next = X;    // T^.LIGA = X
+                    X.next = Q;    // X^.LIGA = Q
+                    this.length++;
+                    return `Elemento ${data} insertado **antes** de ${refValue}.`;
+                } else {
+                    return `Error: Referencia ${refValue} no encontrada.`;
+                }
+            }
+
+
+            // --- Operaciones de Eliminación ---
+
+            deleteAtStart() {
+                if (!this.head) {
+                    return "Error: La lista está vacía. No hay nada que eliminar.";
+                }
+                const deletedData = this.head.data;
+                this.head = this.head.next; // P = Q^.LIGA
+                this.length--;
+                return `Elemento ${deletedData} eliminado del **Inicio**.`;
+            }
+
+            deleteAtEnd() {
+                if (!this.head) {
+                    return "Error: La lista está vacía.";
+                }
+                
+                if (!this.head.next) { // Caso de un solo nodo
+                    const data = this.head.data;
+                    this.head = null;
+                    this.length--;
+                    return `Elemento ${data} eliminado (Único nodo).`;
+                }
+
+                let T = this.head; // T (anterior)
+                let Q = this.head.next; // Q (actual)
+                
+                while (Q.next) { // Recorrido: T sigue a Q hasta que Q sea el último
+                    T = Q;
+                    Q = Q.next;
+                }
+                
+                T.next = null; // T^.LIGA = NILL (Elimina el enlace al último)
+                this.length--;
+                return `Elemento ${Q.data} eliminado del **Final**.`;
+            }
+
+            deleteByValue(value) {
+                if (!this.head) {
+                    return "Error: La lista está vacía.";
+                }
+
+                // 1. Caso: El nodo a eliminar es la cabeza (P=Q)
+                if (this.head.data === value) {
+                    this.head = this.head.next; // P = Q^.LIGA
+                    this.length--;
+                    return `Elemento ${value} eliminado (Era el primer nodo).`;
+                }
+
+                // 2. Caso: Búsqueda en el resto de la lista
+                let T = this.head; // T (Anterior)
+                let Q = this.head.next; // Q (Actual)
+                
+                while (Q && Q.data !== value) {
+                    T = Q;
+                    Q = Q.next;
+                }
+
+                if (Q) {
+                    T.next = Q.next; // T^.LIGA = Q^.LIGA
+                    this.length--;
+                    return `Elemento ${value} eliminado.`;
+                } else {
+                    return `Error: Elemento ${value} no encontrado para eliminar.`;
+                }
+            }
+            
+            // Método: Eliminar Después de REF
+            deleteAfter(refValue) {
+                if (!this.head) {
+                    return "Error: La lista está vacía. No hay nada que eliminar.";
+                }
+                
+                // Buscar el nodo de referencia (Q)
+                let Q = this.head; 
+                while (Q && Q.data !== refValue) {
+                    Q = Q.next;
+                }
+
+                if (!Q) {
+                    return `Error: Referencia ${refValue} no encontrada.`;
+                }
+
+                // Si Q existe, verificar que tenga un nodo después para eliminar
+                if (!Q.next) {
+                    return `Error: El nodo ${refValue} es el último. No hay nodo después para eliminar.`;
+                }
+
+                // El nodo a eliminar es el que sigue a Q (T)
+                let T = Q.next;
+                const deletedData = T.data;
+
+                // Redireccionar la liga de Q para que salte a T.next
+                Q.next = T.next; // Q^.LIGA = T^.LIGA
+                
+                this.length--;
+                return `Elemento ${deletedData} eliminado **después** de ${refValue}.`;
+            }
+
+            // Método: Eliminar Antes de REF (Utiliza tres punteros: R, T, Q)
+            deleteBefore(refValue) {
+                if (!this.head) {
+                    return "Error: Lista vacía. No se puede eliminar antes de nada.";
+                }
+
+                // Caso 1: El nodo de referencia es la cabeza (No hay nodo antes)
+                if (this.head.data === refValue) {
+                    return `Error: No existe un nodo que preceda a la cabeza (${refValue}).`;
+                }
+                
+                // Caso 2: La lista solo tiene uno o dos nodos
+                if (!this.head.next || (this.head.next.data === refValue && !this.head.next.next)) {
+                     // Solo hay un nodo antes de la referencia
+                     if (this.head.next && this.head.next.data === refValue) {
+                         const deletedData = this.head.data;
+                         this.head = this.head.next; // Elimina la cabeza (el nodo antes de REF)
+                         this.length--;
+                         return `Elemento ${deletedData} eliminado (Era el único antes de ${refValue}).`;
+                     }
+                    return `Error: Se necesitan al menos 3 nodos para esta operación si la referencia no es el segundo nodo.`;
+                }
+                
+                // Caso 3: Búsqueda general (R: anterior de T, T: nodo a eliminar, Q: nodo de referencia)
+                let R = this.head;      // R (anterior de T)
+                let T = this.head.next; // T (nodo a eliminar)
+                let Q = T ? T.next : null; // Q (referencia)
+
+                // El ciclo debe buscar hasta que Q encuentre la referencia
+                while (Q && Q.data !== refValue) {
+                    R = T;      // R avanza a T
+                    T = Q;      // T avanza a Q
+                    Q = Q.next; // Q avanza un paso más
+                }
+
+                if (Q && Q.data === refValue) {
+                    // Si encontramos Q (la referencia), T es el nodo a eliminar y R es su anterior.
+                    const deletedData = T.data;
+                    R.next = Q; // R^.LIGA = Q (Elimina T)
+                    this.length--;
+                    return `Elemento ${deletedData} eliminado **antes** de ${refValue}.`;
+                } else {
+                    return `Error: Referencia ${refValue} no encontrada.`;
+                }
+            }
+
+
+            // --- Operaciones de Búsqueda y Recorrido ---
+
+            search(value) {
+                if (!this.head) {
+                    return `Búsqueda: ${value} **NO** encontrado. Lista vacía.`;
+                }
+                let Q = this.head; // Q = P
+                while (Q && Q.data !== value) { // Recorrido
+                    Q = Q.next;
+                }
+
+                if (Q) {
+                    // Animación de flasheo del nodo encontrado
+                    drawList(this.toArray(), value); 
+                    return `Búsqueda: Elemento ${value} **ENCONTRADO**.`;
+                } else {
+                    return `Búsqueda: Elemento ${value} **NO** fue encontrado.`;
+                }
+            }
+
+
+            // --- Operación de Vaciado ---
+            clear() {
+                this.head = null;
+                this.length = 0;
+                return "Lista completamente **vacía**. Inicia de nuevo.";
+            }
+        }
+
+        // ==========================================================
+        // LÓGICA DE VISUALIZACIÓN (CANVAS)
+        // ==========================================================
+        let list = new LinkedList();
+
+        /**
+         * Dibuja una flecha entre dos puntos.
+         */
+        function drawArrow(x1, y1, x2, y2, color = TEXT_COLOR, headLength = 10) {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            
+            // Línea principal
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Dibujar la punta de flecha
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        /**
+         * Dibuja un nodo en el canvas.
+         */
+        function drawNode(node, x, y, isHead = false, isTarget = false) {
+            node.x = x;
+            node.y = y;
+
+            // 1. Dibujar el cuerpo del nodo (INFORMACION + LIGA)
+            ctx.fillStyle = isTarget ? NODE_COLOR : '#fff'; // Fondo blanco, verde si es el nodo encontrado
+            ctx.strokeStyle = TEXT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.fillRect(x, y, NODE_WIDTH, NODE_HEIGHT);
+            ctx.strokeRect(x, y, NODE_WIDTH, NODE_HEIGHT);
+
+            // 2. Separador entre INFO y LIGA
+            const splitX = x + NODE_WIDTH * 0.7;
+            ctx.beginPath();
+            ctx.moveTo(splitX, y);
+            ctx.lineTo(splitX, y + NODE_HEIGHT);
+            ctx.stroke();
+            ctx.closePath();
+
+            // 3. Dibujar la INFORMACION (Dato)
+            ctx.fillStyle = TEXT_COLOR;
+            ctx.font = '16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.data, x + NODE_WIDTH * 0.35, y + NODE_HEIGHT / 2);
+
+            // 4. Dibujar Puntero P si es el inicio
+            if (isHead) {
+                drawArrow(x, y - POINTER_HEIGHT, x, y, HEAD_COLOR);
+                ctx.fillStyle = HEAD_COLOR;
+                ctx.fillText('P', x, y - POINTER_LABEL_OFFSET);
+            }
+        }
+
+        /**
+         * Dibuja la lista completa con sus ligas.
+         */
+        function drawList(nodes, targetValue = null) {
+            if (!ctx) return;
+            
+            // Ajustar el tamaño del canvas al contenido
+            const requiredWidth = nodes.length * (NODE_WIDTH + HORIZONTAL_GAP) + HORIZONTAL_GAP;
+            canvas.width = Math.max(canvas.parentElement.clientWidth, requiredWidth);
+            canvas.height = CANVAS_HEIGHT;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (nodes.length === 0) {
+                ctx.fillStyle = TEXT_COLOR;
+                ctx.font = '20px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Lista vacía (P = NILL)', canvas.width / 2, CANVAS_HEIGHT / 2);
+                document.getElementById('statusInfo').innerText = `Estado: Lista con 0 nodos.`;
+                return;
+            }
+
+            const startX = HORIZONTAL_GAP / 2;
+            const startY = (CANVAS_HEIGHT - NODE_HEIGHT) / 2;
+            let currentX = startX;
+
+            // Dibuja Nodos y calcula posiciones
+            nodes.forEach((node, index) => {
+                const isHead = index === 0;
+                const isTarget = node.data == targetValue; // Usamos == para comparar número con string de input
+                drawNode(node, currentX, startY, isHead, isTarget);
+                currentX += NODE_WIDTH + HORIZONTAL_GAP;
+            });
+
+            // Dibuja las Ligas (Flechas)
+            for (let i = 0; i < nodes.length; i++) {
+                const current = nodes[i];
+                if (current.next) {
+                    const next = nodes[i + 1];
+                    // Origen de la flecha (mitad del campo LIGA)
+                    const x1 = current.x + NODE_WIDTH * 0.85; 
+                    const y1 = current.y + NODE_HEIGHT / 2;
+                    // Destino de la flecha (inicio del siguiente nodo)
+                    const x2 = next.x; 
+                    const y2 = next.y + NODE_HEIGHT / 2;
+                    
+                    drawArrow(x1, y1, x2, y2);
+                } else {
+                    // Dibuja NILL/NULL al final
+                    const x = current.x + NODE_WIDTH * 0.7;
+                    const y = current.y + NODE_HEIGHT * 0.75;
+                    ctx.fillStyle = TEMP_COLOR;
+                    ctx.font = '14px Inter';
+                    ctx.fillText('NILL', x + 5, y + 20);
+                }
+            }
+            document.getElementById('statusInfo').innerText = `Estado: Lista con ${list.length} nodos.`;
+        }
+
+        // ==========================================================
+        // MANEJO DE EVENTOS E INTERFAZ
+        // ==========================================================
+        
+        // Inicializa el Canvas al cargar la ventana
+        window.onload = function () {
+            canvas = document.getElementById('listCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Dibuja la lista inicial (vacía)
+            drawList(list.toArray()); 
+
+            // Manejo de redimensionamiento para mantener la responsividad del canvas
+            window.addEventListener('resize', () => drawList(list.toArray()));
+        };
+        
+        /**
+         * Muestra el pseudocódigo correspondiente en la sección AlgorithmDisplay.
+         */
+        function showAlgorithm(operationKey) {
+            const algorithmData = ALGORITHMS[operationKey];
+            const algorithmDisplay = document.getElementById('algorithmDisplay');
+
+            if (algorithmData) {
+                algorithmDisplay.innerHTML = `
+                    <h3>${algorithmData.title}</h3>
+                    <pre class="text-sm text-gray-800">${algorithmData.code}</pre>
+                `;
+            }
+        }
+
+        /**
+         * Función central para manejar las operaciones de la lista.
+         */
+        function handleOperation(operation) {
+            
+            let algorithmKey = operation;
+
+            // Mapeo especial para los pseudocódigos
+            if (operation === 'createListCycle') {
+                algorithmKey = 'createListCycle';
+            } else if (operation === 'insertStart' && list.length === 0) {
+                 algorithmKey = 'CREAINICIO_FULL'; // Se usa solo por el nombre del algoritmo de creación
+            } else if (operation === 'insertEnd' && list.length === 0) {
+                 algorithmKey = 'CREAFINAL_FULL'; // Se usa solo por el nombre del algoritmo de creación
+            } else if (operation === 'insertStart') {
+                 algorithmKey = 'insertStart'; 
+            } else if (operation === 'insertEnd') {
+                 algorithmKey = 'insertEnd'; 
+            }
+            
+            // Si es un recorrido, solo mostramos el pseudocódigo, la ejecución ya se ve al dibujar.
+            if (operation === 'showTraversal') {
+                showAlgorithm(operation);
+                messageBox.className = 'p-3 mb-4 bg-blue-100 text-blue-700 rounded-lg font-medium';
+                messageBox.innerHTML = list.showTraversal();
+                return;
+            }
+            
+            // Mostrar el pseudocódigo ANTES de ejecutar la operación
+            showAlgorithm(algorithmKey); 
+
+            const dataInput = document.getElementById('dataInput');
+            const refInput = document.getElementById('refInput');
+            const messageBox = document.getElementById('messageBox');
+            let message = "";
+            let data = parseInt(dataInput.value);
+            let refValue = parseInt(refInput.value);
+            let targetValue = null;
+
+            if (operation !== 'clear' && operation.includes('insert') && operation !== 'createListCycle' && isNaN(data)) {
+                messageBox.className = 'p-3 mb-4 bg-red-100 text-red-700 rounded-lg font-medium';
+                messageBox.innerHTML = "Error: Por favor, ingrese un valor de dato válido (INFO).";
+                return;
+            }
+            
+            // Validación específica para operaciones que requieren REF
+            if (['insertAfter', 'insertBefore', 'deleteByValue', 'deleteAfter', 'deleteBefore', 'search'].includes(operation) && isNaN(refValue)) {
+                messageBox.className = 'p-3 mb-4 bg-red-100 text-red-700 rounded-lg font-medium';
+                messageBox.innerHTML = "Error: Por favor, ingrese un valor de referencia válido (REF).";
+                return;
+            }
+
+            try {
+                // Lógica especial para CREAR LISTA (Ciclo)
+                if (operation === 'createListCycle') {
+                    if (list.length > 0) {
+                         messageBox.className = 'p-3 mb-4 bg-yellow-100 text-yellow-700 rounded-lg font-medium';
+                         messageBox.innerHTML = "Error: ¡La lista ya tiene elementos! Vaciéla antes de crear una nueva en ciclo.";
+                         return;
+                    }
+                    // Simulamos la entrada de datos múltiples. Usamos prompt() porque no podemos crear un modal complejo
+                    // en este entorno sin romper la regla de un solo archivo.
+                    const input = prompt("Ingrese los datos separados por comas (ej: 10,20,30,40):");
+                    if (input === null || input.trim() === "") {
+                        message = "Creación de lista cancelada.";
+                    } else {
+                        const dataArray = input.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+                        if (dataArray.length > 0) {
+                            message = list.createListInCycle(dataArray);
+                        } else {
+                            message = "Error: No se ingresaron números válidos.";
+                        }
+                    }
+                }
+                
+                // Ejecución de operaciones individuales
+                else {
+                    switch (operation) {
+                        case 'insertStart':
+                            message = list.insertAtStart(data);
+                            break;
+                        case 'insertEnd':
+                            message = list.insertAtEnd(data);
+                            break;
+                        case 'insertAfter':
+                            message = list.insertAfter(data, refValue);
+                            break;
+                        case 'insertBefore':
+                            message = list.insertBefore(data, refValue);
+                            break;
+                        case 'deleteStart':
+                            message = list.deleteAtStart();
+                            break;
+                        case 'deleteEnd':
+                            message = list.deleteAtEnd();
+                            break;
+                        case 'deleteByValue':
+                            message = list.deleteByValue(refValue);
+                            break;
+                        case 'deleteAfter':
+                            message = list.deleteAfter(refValue);
+                            break;
+                        case 'deleteBefore':
+                            message = list.deleteBefore(refValue);
+                            break;
+                        case 'search':
+                            targetValue = refValue;
+                            message = list.search(refValue);
+                            break;
+                        case 'clear':
+                            message = list.clear();
+                            break;
+                        default:
+                            message = "Operación no reconocida.";
+                    }
+                }
+                
+                // Actualizar la visualización de la lista
+                drawList(list.toArray(), targetValue); 
+                
+                // Mostrar mensaje de éxito/resultado
+                messageBox.className = 'p-3 mb-4 bg-blue-100 text-blue-700 rounded-lg font-medium';
+                messageBox.innerHTML = message;
+                
+            } catch (error) {
+                console.error("Error en la operación de lista:", error);
+                messageBox.className = 'p-3 mb-4 bg-red-100 text-red-700 rounded-lg font-medium';
+                messageBox.innerHTML = `Error interno: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
