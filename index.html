@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Estructuras de Datos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translate(0, 0px); }
+            50% { transform: translate(0, 10px); }
+            100% { transform: translate(0, -0px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <header class="gradient-bg text-white">
+        <div class="container mx-auto px-4 py-12">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-8 md:mb-0 md:w-1/2">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">Simulador de Estructuras de Datos</h1>
+                    <p class="text-xl opacity-90 mb-6">Visualiza y comprende las estructuras de datos fundamentales a través de simulaciones interactivas</p>
+                    <a href="#simuladores" class="bg-white text-primary-600 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-100 transition duration-300 inline-block">
+                        Explorar Simuladores
+                    </a>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-64 h-64">
+                        <div class="absolute top-0 left-0 w-16 h-16 bg-yellow-400 rounded-full opacity-70 floating" style="animation-delay: 0s;"></div>
+                        <div class="absolute top-10 right-0 w-12 h-12 bg-green-400 rounded-full opacity-70 floating" style="animation-delay: 0.5s;"></div>
+                        <div class="absolute bottom-0 left-10 w-14 h-14 bg-red-400 rounded-full opacity-70 floating" style="animation-delay: 1s;"></div>
+                        <div class="absolute bottom-10 right-10 w-10 h-10 bg-blue-400 rounded-full opacity-70 floating" style="animation-delay: 1.5s;"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-project-diagram text-6xl text-white opacity-80"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Introducción -->
+    <section class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Aprende Estructuras de Datos de Forma Visual</h2>
+                <p class="text-lg text-gray-600 mb-8">
+                    Esta plataforma te permite interactuar con diferentes estructuras de datos para comprender su funcionamiento interno. 
+                    Cada simulador incluye visualizaciones paso a paso y pseudocódigo para facilitar el aprendizaje.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+                    <div class="bg-primary-50 p-6 rounded-lg border border-primary-100">
+                        <i class="fas fa-eye text-primary-600 text-2xl mb-4"></i>
+                        <h3 class="font-semibold text-lg mb-2">Visualización Interactiva</h3>
+                        <p class="text-gray-600">Observa cómo cambian las estructuras con cada operación</p>
+                    </div>
+                    <div class="bg-primary-50 p-6 rounded-lg border border-primary-100">
+                        <i class="fas fa-code text-primary-600 text-2xl mb-4"></i>
+                        <h3 class="font-semibold text-lg mb-2">Pseudocódigo</h3>
+                        <p class="text-gray-600">Comprende los algoritmos detrás de cada operación</p>
+                    </div>
+                    <div class="bg-primary-50 p-6 rounded-lg border border-primary-100">
+                        <i class="fas fa-graduation-cap text-primary-600 text-2xl mb-4"></i>
+                        <h3 class="font-semibold text-lg mb-2">Aprendizaje Práctico</h3>
+                        <p class="text-gray-600">Experimenta con diferentes casos y operaciones</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Simuladores -->
+    <section id="simuladores" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Elige un Simulador</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Listas Ligadas -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-2 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-link text-blue-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">Listas Ligadas</h3>
+                        </div>
+                        <p class="text-gray-600 mb-6">
+                            Simulador de listas enlazadas simples con operaciones de inserción, eliminación y búsqueda.
+                        </p>
+                        <ul class="text-sm text-gray-500 mb-6 space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Inserción al inicio/final
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Eliminación por valor
+                            </li>
+                            <li class="fas fa-check text-green-500 mr-2">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Búsqueda de elementos
+                            </li>
+                        </ul>
+                        <a href="listas-ligadas.html" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-semibold py-3 px-4 rounded-lg transition duration-300">
+                            Abrir Simulador
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Pilas -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-2 bg-gradient-to-r from-green-500 to-teal-600"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-layer-group text-green-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">Pilas (Stack)</h3>
+                        </div>
+                        <p class="text-gray-600 mb-6">
+                            Simulador de estructura LIFO (Last In, First Out) con operaciones push, pop y peek.
+                        </p>
+                        <ul class="text-sm text-gray-500 mb-6 space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Operaciones push y pop
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Visualización de la pila
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Verificación de pila vacía
+                            </li>
+                        </ul>
+                        <a href="pilas.html" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center font-semibold py-3 px-4 rounded-lg transition duration-300">
+                            Abrir Simulador
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Colas -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-2 bg-gradient-to-r from-purple-500 to-pink-600"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-stream text-purple-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">Colas (Queue)</h3>
+                        </div>
+                        <p class="text-gray-600 mb-6">
+                            Simulador de estructura FIFO (First In, First Out) con operaciones enqueue y dequeue.
+                        </p>
+                        <ul class="text-sm text-gray-500 mb-6 space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Operaciones enqueue y dequeue
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Colas circulares
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Visualización de prioridades
+                            </li>
+                        </ul>
+                        <a href="colas.html" class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center font-semibold py-3 px-4 rounded-lg transition duration-300">
+                            Abrir Simulador
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Árboles -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-2 bg-gradient-to-r from-yellow-500 to-orange-600"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-tree text-yellow-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">Árboles Binarios</h3>
+                        </div>
+                        <p class="text-gray-600 mb-6">
+                            Simulador de árboles binarios con operaciones de inserción, eliminación y recorridos.
+                        </p>
+                        <ul class="text-sm text-gray-500 mb-6 space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Inserción y eliminación
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Recorridos: preorden, inorden, postorden
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Búsqueda en árboles binarios de búsqueda
+                            </li>
+                        </ul>
+                        <a href="arboles.html" class="block w-full bg-yellow-600 hover:bg-yellow-700 text-white text-center font-semibold py-3 px-4 rounded-lg transition duration-300">
+                            Abrir Simulador
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Grafos -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-2 bg-gradient-to-r from-red-500 to-pink-600"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-project-diagram text-red-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">Grafos</h3>
+                        </div>
+                        <p class="text-gray-600 mb-6">
+                            Simulador de grafos dirigidos y no dirigidos con algoritmos de recorrido y búsqueda.
+                        </p>
+                        <ul class="text-sm text-gray-500 mb-6 space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Grafos dirigidos y no dirigidos
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Recorridos BFS y DFS
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Algoritmos de caminos mínimos
+                            </li>
+                        </ul>
+                        <a href="grafos.html" class="block w-full bg-red-600 hover:bg-red-700 text-white text-center font-semibold py-3 px-4 rounded-lg transition duration-300">
+                            Abrir Simulador
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Próximamente -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover border-2 border-dashed border-gray-300">
+                    <div class="h-2 bg-gradient-to-r from-gray-400 to-gray-600"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="fas fa-plus text-gray-500 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-500">Más Estructuras</h3>
+                        </div>
+                        <p class="text-gray-500 mb-6">
+                            Próximamente añadiremos más estructuras de datos para explorar y aprender.
+                        </p>
+                        <ul class="text-sm text-gray-400 mb-6 space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                Tablas Hash
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                Árboles AVL
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                Montículos (Heaps)
+                            </li>
+                        </ul>
+                        <button class="block w-full bg-gray-400 text-white text-center font-semibold py-3 px-4 rounded-lg cursor-not-allowed">
+                            Próximamente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cómo usar -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Cómo Usar los Simuladores</h2>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="md:w-1/3">
+                        <div class="bg-primary-50 p-6 rounded-lg h-full">
+                            <div class="text-3xl font-bold text-primary-600 mb-4">1</div>
+                            <h3 class="text-xl font-semibold mb-3">Elige una Estructura</h3>
+                            <p class="text-gray-600">Selecciona la estructura de datos que quieres explorar desde la galería de simuladores.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/3">
+                        <div class="bg-primary-50 p-6 rounded-lg h-full">
+                            <div class="text-3xl font-bold text-primary-600 mb-4">2</div>
+                            <h3 class="text-xl font-semibold mb-3">Realiza Operaciones</h3>
+                            <p class="text-gray-600">Utiliza los controles para realizar diferentes operaciones sobre la estructura de datos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/3">
+                        <div class="bg-primary-50 p-6 rounded-lg h-full">
+                            <div class="text-3xl font-bold text-primary-600 mb-4">3</div>
+                            <h3 class="text-xl font-semibold mb-3">Observa y Aprende</h3>
+                            <p class="text-gray-600">Visualiza los cambios en tiempo real y estudia el pseudocódigo de cada operación.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-12 bg-gray-50 p-8 rounded-xl border border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Consejos para el Aprendizaje</h3>
+                    <ul class="text-gray-600 space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-3"></i>
+                            <span>Experimenta con diferentes valores y observa cómo afectan a la estructura</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-3"></i>
+                            <span>Realiza las mismas operaciones en diferentes órdenes para comprender mejor el comportamiento</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-3"></i>
+                            <span>Estudia el pseudocódigo para entender la lógica detrás de cada operación</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-3"></i>
+                            <span>Intenta predecir el resultado antes de realizar una operación</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-2xl font-bold mb-2">Simulador de Estructuras de Datos</h3>
+                    <p class="text-gray-400">Una herramienta educativa para el aprendizaje visual</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-primary-600 transition duration-300">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-primary-600 transition duration-300">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-primary-600 transition duration-300">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2023 Simulador de Estructuras de Datos. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling para los enlaces internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
