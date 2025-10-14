@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Colas (Queue)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        // Color específico para Colas (púrpura/índigo)
+                        queue: {
+                            50: '#f5f3ff',
+                            500: '#8b5cf6', // Indigo/púrpura
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-queue {
+            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+        }
+        .queue-visualization {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            overflow-x: auto;
+            padding: 10px;
+        }
+        .queue-item {
+            /* Estilo visual para cada nodo/elemento */
+            width: 80px;
+            padding: 10px;
+            margin: 0 5px;
+            background-color: #f5f3ff;
+            border: 2px solid #7c3aed;
+            text-align: center;
+            font-weight: bold;
+            color: #6d28d9;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Evita que los nodos se encojan */
+            position: relative;
+        }
+        .queue-item:not(:last-child)::after {
+            content: "→";
+            position: absolute;
+            right: -18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: #7c3aed;
+            font-weight: normal;
+        }
+        .queue-front {
+            border-color: #ef4444; /* Rojo para el frente (raiz) */
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        .queue-back {
+            border-color: #f97316; /* Naranja para el fondo */
+            background-color: #fff7ed;
+            color: #c2410c;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <header class="gradient-queue text-white">
+        <div class="container mx-auto px-4 py-8">
+            <a href="index.html" class="text-sm opacity-90 hover:opacity-100 transition duration-300">
+                <i class="fas fa-arrow-left mr-2"></i> Volver a Simuladores
+            </a>
+            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-2 flex items-center">
+                <i class="fas fa-stream text-white text-3xl mr-4"></i> Simulador de Colas (Queue)
+            </h1>
+            <p class="text-xl opacity-90">Visualiza la estructura **FIFO** (First In, First Out).</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-full">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 border-gray-200">Operaciones de la Cola 💻</h2>
+                
+                <div class="mb-6">
+                    <label for="valorInsertar" class="block text-sm font-medium text-gray-700 mb-2">Valor a Encolar (Insertar)</label>
+                    <input type="number" id="valorInsertar" placeholder="Escribe un número" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-queue-500 focus:border-queue-500" value="100">
+                </div>
+
+                <div class="space-y-4">
+                    <button id="btnInsertar" class="w-full bg-queue-600 hover:bg-queue-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-plus-circle mr-2"></i> Encolar (Enqueue/Insertar)
+                    </button>
+                    <button id="btnExtraer" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-minus-circle mr-2"></i> Desencolar (Dequeue/Extraer)
+                    </button>
+                    <button id="btnFrente" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-eye mr-2"></i> Mostrar Frente (`raiz`)
+                    </button>
+                    <button id="btnVacia" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-question-circle mr-2"></i> ¿Cola Vacía?
+                    </button>
+                    <button id="btnClear" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-trash-alt mr-2"></i> Vaciar Cola
+                    </button>
+                </div>
+
+                <div id="resultado" class="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700 font-medium hidden">
+                    Resultado de la Operación...
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-8">
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg h-56">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Visualización de la Cola 📊</h2>
+                    <div id="visualizacion" class="h-3/4 border-2 border-gray-300 rounded-lg p-4 bg-gray-50 queue-visualization">
+                        <div id="colaVaciaMsg" class="text-gray-500 text-lg">Cola vacía (`raiz` = `fondo` = `null`)</div>
+                    </div>
+                    <div class="flex justify-between text-sm mt-2">
+                        <p class="text-red-500 font-bold">← FRENTE (`raiz`) / DEQUEUE</p>
+                        <p class="text-orange-600 font-bold">ENCOLAR / FONDO (`fondo`) →</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Pseudocódigo del Algoritmo 📜</h2>
+                    <pre id="pseudocodigo" class="bg-gray-800 text-green-300 p-4 rounded-lg overflow-x-auto text-sm mb-4">
+Presiona un botón para ver el pseudocódigo correspondiente a la operación.
+                    </pre>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Código de Implementación en C\# 💻</h2>
+                    <pre id="codigoCSharp" class="bg-gray-800 text-blue-300 p-4 rounded-lg overflow-x-auto text-sm">
+Presiona un botón para ver la implementación del método en C#.
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            <p>&copy; 2025 Simulador de Colas. Estructuras de Datos Lineales.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Clase Nodo (Basada en tu PPT) ---
+        class Nodo {
+            constructor(info) {
+                this.info = info;
+                this.sig = null;
+            }
+        }
+
+        // --- Clase Cola (Implementación con Lista Ligada) ---
+        class Cola {
+            constructor() {
+                // raiz almacena el frente, fondo es el último elemento
+                this.raiz = null; 
+                this.fondo = null;
+                this.size = 0;
+            }
+
+            // Operación Insertar (Enqueue)
+            insertar(info) {
+                const nuevo = new Nodo(info); 
+
+                if (this.raiz === null) { // if (Vacia ())
+                    // Cola Vacía: raiz y fondo apuntan al nuevo nodo
+                    this.raiz = nuevo; 
+                    this.fondo = nuevo; 
+                } else {
+                    // Hay nodos: la cola crece por el fondo
+                    this.fondo.sig = nuevo; 
+                    this.fondo = nuevo;     
+                }
+                this.size++;
+            }
+
+            // Operación Extraer (Dequeue)
+            extraer() {
+                if (this.raiz !== null) { // if (!Vacia ())
+                    const informacion = this.raiz.info; 
+                    
+                    if (this.raiz === this.fondo) { // Si hay un solo nodo
+                        this.raiz = null;   
+                        this.fondo = null;  
+                    } else {
+                        this.raiz = this.raiz.sig; // El frente avanza al siguiente nodo
+                    }
+                    this.size--;
+                    return informacion; 
+                } else {
+                    return null; 
+                }
+            }
+
+            // Operación Mostrar el primer elemento (Frente)
+            frente() {
+                if (this.raiz !== null) {
+                    return this.raiz.info;
+                } else {
+                    return null;
+                }
+            }
+            
+            // Operación Vacía (isEmpty)
+            vacia() {
+                return this.raiz === null; 
+            }
+
+            // Operación Extra (Limpiar)
+            clear() {
+                this.raiz = null;
+                this.fondo = null;
+                this.size = 0;
+            }
+        }
+
+        const cola = new Cola();
+        const visualizacionDiv = document.getElementById('visualizacion');
+        const resultadoDiv = document.getElementById('resultado');
+        const pseudocodigoDiv = document.getElementById('pseudocodigo');
+        const codigoCSharpDiv = document.getElementById('codigoCSharp');
+
+        // --- Funciones de Interfaz ---
+
+        function updateVisualizacion() {
+            visualizacionDiv.innerHTML = ''; 
+            let reco = cola.raiz;
+            let index = 0;
+
+            if (cola.vacia()) {
+                visualizacionDiv.innerHTML = '<div id="colaVaciaMsg" class="text-gray-500 text-lg">Cola vacía (raiz = fondo = null)</div>';
+                return;
+            }
+
+            while (reco !== null) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'queue-item';
+                
+                if (reco === cola.raiz) { // El primer nodo es la raiz (frente)
+                    itemDiv.classList.add('queue-front');
+                }
+                // Etiquetar el fondo
+                if (reco === cola.fondo && cola.raiz !== cola.fondo) { 
+                     itemDiv.classList.add('queue-back');
+                }
+                if (cola.raiz === cola.fondo) { // Si hay un solo elemento
+                     itemDiv.classList.add('queue-front'); 
+                     itemDiv.classList.add('queue-back');
+                }
+                
+                itemDiv.textContent = reco.info;
+                visualizacionDiv.appendChild(itemDiv);
+                reco = reco.sig;
+                index++;
+            }
+        }
+
+        function showResult(message, isError = false) {
+            resultadoDiv.textContent = message;
+            resultadoDiv.classList.remove('hidden');
+            if (isError) {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 font-medium';
+            } else {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-queue-50 border border-queue-200 text-sm text-queue-700 font-medium';
+            }
+            setTimeout(() => resultadoDiv.classList.add('hidden'), 5000);
+        }
+
+        function showPseudocodigo(codigo) {
+            pseudocodigoDiv.textContent = codigo;
+        }
+        
+        function showCSharpCode(codigo) { 
+            codigoCSharpDiv.textContent = codigo;
+        }
+
+        // --- Pseudocódigos ---
+        const pseudocodigoInsertar = `
+// Operación: Encolar (Enqueue) / Insertar(X)
+1. CREAR Nuevo_Nodo
+2. Nuevo_Nodo.info <- X
+3. Nuevo_Nodo.sig <- NULL
+4. SI (Vacia())
+5.     raiz <- Nuevo_Nodo // El frente es el nuevo
+6.     fondo <- Nuevo_Nodo // El fondo es el nuevo
+7. SINO
+8.     fondo.sig <- Nuevo_Nodo // Enlaza el nodo anterior del fondo al nuevo
+9.     fondo <- Nuevo_Nodo     // El nuevo nodo es ahora el fondo
+10. FIN_SI
+        `;
+
+        const pseudocodigoExtraer = `
+// Operación: Desencolar (Dequeue) / Extraer()
+1. SI (NO Vacia())
+2.     Valor_Info <- raiz.info
+3.     SI (raiz = fondo) // Si solo hay un nodo
+4.         raiz <- NULL
+5.         fondo <- NULL
+6.     SINO
+7.         raiz <- raiz.sig // El frente avanza
+8.     FIN_SI
+9.     RETORNAR Valor_Info
+10. SINO
+11.    RETORNAR Error (int.MaxValue)
+12. FIN_SI
+        `;
+        
+        const pseudocodigoFrente = `
+// Operación: Mostrar el primer elemento (Frente/Peek)
+1. SI (NO Vacia())
+2.     RETORNAR raiz.info // Devuelve el valor sin modificar la Cola
+3. SINO
+4.     RETORNAR Error (int.MaxValue)
+5. FIN_SI
+        `;
+
+        const pseudocodigoVacia = `
+// Operación: ¿Cola Vacía?
+1. SI (raiz = NULL)
+2.     RETORNAR VERDADERO
+3. SINO
+4.     RETORNAR FALSO
+5. FIN_SI
+        `;
+        
+        const pseudocodigoClear = `
+// Operación: Vaciar Cola
+1. raiz <- NULL
+2. fondo <- NULL
+3. RETORNAR Exitoso
+        `;
+        
+        // --- Código C# (Basado en tu PPT) ---
+        
+        const csharpInsertar = `
+// Método para Insertar (Enqueue)
+public void Insertar (int info)
+{
+    Nodo nuevo;
+    nuevo = new Nodo ();
+    nuevo.info = info;
+    nuevo.sig = null;
+    
+    if (Vacia ())
+    {
+        raiz = nuevo;
+        fondo = nuevo;
+    }
+    else
+    {
+        fondo.sig = nuevo;
+        fondo = nuevo;
+    }
+}
+        `;
+
+        const csharpExtraer = `
+// Método para Extraer (Dequeue)
+public int Extraer ()
+{
+    if (!Vacia ())
+    {
+        int informacion = raiz.info;
+        if (raiz == fondo)
+        {
+            raiz = null;
+            fondo = null;
+        }
+        else
+        {
+            raiz = raiz.sig;
+        }
+        return informacion;
+    }
+    else
+        return int.MaxValue;
+}
+        `;
+        
+        const csharpFrente = `
+// Método para Mostrar el primer elemento (Frente)
+public int MostrarFrente() 
+{
+    if (!Vacia())
+    {
+        return raiz.info; 
+    }
+    else
+    {
+        return int.MaxValue; 
+    }
+}
+        `;
+
+        const csharpVacia = `
+// Método para verificar si está vacía
+public bool Vacia ()
+{
+    if (raiz == null)
+        return true;
+    else
+        return false;
+}
+        `;
+        
+        const csharpClear = `
+// Método para limpiar (vaciar) la cola
+public void Vaciar() 
+{
+    // Elimina las referencias (el Garbage Collector limpia los nodos)
+    raiz = null; 
+    fondo = null;
+}
+        `;
+        
+        // --- Event Listeners ---
+        
+        document.getElementById('btnInsertar').addEventListener('click', () => {
+            const input = document.getElementById('valorInsertar');
+            const valor = parseInt(input.value);
+
+            if (isNaN(valor)) {
+                showResult('¡Error! Por favor, ingrese un número válido.', true);
+                return;
+            }
+            
+            cola.insertar(valor);
+            updateVisualizacion();
+            showPseudocodigo(pseudocodigoInsertar);
+            showCSharpCode(csharpInsertar);
+            showResult(`Se ha ENCOLADO (INSERTADO) el valor ${valor} exitosamente. Nuevo fondo: ${valor}`);
+            input.value = ''; 
+        });
+
+        document.getElementById('btnExtraer').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoExtraer);
+            showCSharpCode(csharpExtraer);
+            const valorExtraido = cola.extraer();
+
+            if (valorExtraido !== null) {
+                updateVisualizacion();
+                const nuevoFrente = cola.frente();
+                const mensajeFrente = nuevoFrente !== null ? `El nuevo frente es ${nuevoFrente}.` : 'La cola ha quedado vacía.';
+                showResult(`Se ha DESENCOLADO (EXTRAÍDO) el valor ${valorExtraido}. ${mensajeFrente}`);
+            } else {
+                showResult('¡Error! La Cola está vacía. No se puede desencolar (DEQUEUE).', true);
+            }
+        });
+
+        document.getElementById('btnFrente').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoFrente);
+            showCSharpCode(csharpFrente);
+            const frente = cola.frente();
+
+            if (frente !== null) {
+                showResult(`El elemento en el FRENTE es: ${frente}. La cola no fue modificada.`);
+            } else {
+                showResult('La Cola está vacía. No hay Frente.', true);
+            }
+        });
+
+        document.getElementById('btnVacia').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoVacia);
+            showCSharpCode(csharpVacia);
+            const vacia = cola.vacia();
+
+            if (vacia) {
+                showResult('La Cola está VACIÍA (TRUE).');
+            } else {
+                showResult('La Cola NO está vacía (FALSE).');
+            }
+        });
+        
+        document.getElementById('btnClear').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoClear);
+            showCSharpCode(csharpClear);
+            cola.clear();
+            updateVisualizacion();
+            showResult('La Cola ha sido VACIADA (Limpiada).');
+        });
+
+        // Inicializar la visualización
+        updateVisualizacion();
+    </script>
+</body>
+</html>

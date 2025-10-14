@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Árboles Binarios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        // Color específico para Árboles (naranja/amarillo)
+                        arbol: {
+                            50: '#fffbeb',
+                            500: '#f97316', // Naranja
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-arbol {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+        .tree-container {
+            /* Contenedor principal que permite el desplazamiento horizontal */
+            height: 100%;
+            padding: 20px 0;
+            overflow: auto; 
+            font-size: 0.9rem;
+        }
+
+        /* Estilos para dibujar el árbol de forma recursiva */
+        .tree-root {
+            text-align: center;
+        }
+
+        .node-container {
+            display: inline-block;
+            text-align: center;
+        }
+
+        .node-content {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .node-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .node-info {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 10px 15px; /* Separación horizontal de nodos */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            
+            /* Colores base */
+            background-color: #fffbeb;
+            border: 2px solid #f97316;
+            color: #c2410c;
+        }
+
+        .node-root .node-info {
+            background-color: #fee2e2;
+            border-color: #dc2626;
+            color: #b91c1c;
+        }
+
+        .node-visited {
+            background-color: #a7f3d0 !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        /* Líneas de conexión (más complejas en CSS, pero esenciales para la visualización) */
+        .children-container {
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .children-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 10px;
+            background-color: #ccc;
+            transform: translateX(-50%);
+        }
+
+        .child-link {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            padding-top: 10px;
+            z-index: 10;
+        }
+        
+        .child-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 50%; /* Mitad del enlace */
+            height: 10px; /* Longitud del enlace vertical */
+            border-top: 2px solid #ccc;
+            z-index: 0;
+        }
+        
+        /* Enlaces para el lado izquierdo */
+        .child-link:first-child:not(:last-child)::before {
+            left: 50%; 
+            border-right: 2px solid #ccc;
+            transform: skewX(-30deg); 
+        }
+
+        /* Enlaces para el lado derecho */
+        .child-link:last-child:not(:first-child)::before {
+            right: 50%; 
+            border-left: 2px solid #ccc;
+            transform: skewX(30deg);
+        }
+
+        /* Nota: La simulación de las líneas no es perfecta con solo CSS/flexbox, pero da una mejor idea de la jerarquía que el intento anterior. */
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <header class="gradient-arbol text-white">
+        <div class="container mx-auto px-4 py-8">
+            <a href="index.html" class="text-sm opacity-90 hover:opacity-100 transition duration-300">
+                <i class="fas fa-arrow-left mr-2"></i> Volver a Simuladores
+            </a>
+            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-2 flex items-center">
+                <i class="fas fa-tree text-white text-3xl mr-4"></i> Simulador de Árboles Binarios
+            </h1>
+            <p class="text-xl opacity-90">Explora la recursividad y los recorridos.</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-full">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 border-gray-200">Operaciones del Árbol 💻</h2>
+                
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold border-b pb-1 text-arbol-700">Creación</h3>
+                    <button id="btnCrearArbol" class="w-full bg-arbol-600 hover:bg-arbol-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-sitemap mr-2"></i> Crear Árbol (Interactivo)
+                    </button>
+                    <p class="text-xs text-gray-500 italic">Sigue las instrucciones en los cuadros de diálogo (prompts).</p>
+                    
+                    <h3 class="text-lg font-semibold border-b pb-1 pt-3 text-arbol-700">Recorridos</h3>
+                    <button id="btnPreorden" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-angle-double-right mr-2"></i> Recorrido Preorden
+                    </button>
+                    <button id="btnInorden" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-sync-alt mr-2"></i> Recorrido Inorden
+                    </button>
+                    <button id="btnPosorden" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-angle-double-left mr-2"></i> Recorrido Posorden
+                    </button>
+                    
+                    <h3 class="text-lg font-semibold border-b pb-1 pt-3 text-gray-700">Utilidades</h3>
+                    <button id="btnClear" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-times-circle mr-2"></i> Vaciar Árbol
+                    </button>
+                </div>
+
+                <div id="resultado" class="mt-6 p-4 rounded-lg bg-arbol-50 border border-arbol-200 text-sm text-arbol-700 font-medium hidden">
+                    Recorrido: 
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-8">
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg h-96">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Visualización del Árbol 📊</h2>
+                    <div id="visualizacion" class="h-4/5 border-2 border-gray-300 rounded-lg bg-gray-50 tree-container">
+                        <div id="arbolVacioMsg" class="text-gray-500 text-lg mt-12">Árbol vacío. Presiona "Crear Árbol" para inicializarlo.</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Pseudocódigo del Algoritmo 📜</h2>
+                    <pre id="pseudocodigo" class="bg-gray-800 text-green-300 p-4 rounded-lg overflow-x-auto text-sm mb-4">
+Presiona un botón para ver el pseudocódigo correspondiente a la operación.
+                    </pre>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Código de Implementación en C\# 💻</h2>
+                    <pre id="codigoCSharp" class="bg-gray-800 text-blue-300 p-4 rounded-lg overflow-x-auto text-sm">
+Presiona un botón para ver la implementación del método en C#.
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            <p>&copy; 2025 Simulador de Árboles. Estructuras de Datos No Lineales.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Clase Nodo (Basada en tu PPT) ---
+        class Nodo {
+            constructor(info) {
+                this.info = info; 
+                this.izq = null;
+                this.der = null;
+            }
+        }
+
+        // --- Clase Árbol ---
+        class Arbol {
+            constructor() {
+                this.raiz = null;
+            }
+            
+            // Método Crea_arbol interactivo (simulando la consola con prompt)
+            crea_arbol_interactivo(apnodo) {
+                const valor = prompt(`Introduce el valor del nodo del árbol (actual: ${apnodo ? apnodo.info : 'RAÍZ'}):`);
+                if (valor === null || valor.trim() === '') return false; // Cancelado o vacío
+                
+                // 1. Leer APNODO^.INFO
+                apnodo.info = valor.toUpperCase().charAt(0); // Usamos la primera letra para simplificar
+                
+                let res;
+
+                // 4. Rama Izquierda
+                // 2. Escribir "¿Existe nodo por izquierda?"
+                res = prompt(`Existe nodo izquierdo en ${apnodo.info}? (s/n)`);
+                if (res && res.toLowerCase() === 's') {
+                    // 5. Crea (OTRO)
+                    let otro = new Nodo('');
+                    // 6. Hacer APNODO^.IZQ <- OTRO
+                    apnodo.izq = otro;
+                    // 7. Regresar a Crea_arbol con APNODO^.IZQ (Llamada Recursiva)
+                    this.crea_arbol_interactivo(apnodo.izq);
+                } else {
+                    // 9. Hacer APNODO^.IZQ <- NIL
+                    apnodo.izq = null;
+                }
+
+                // 8. Rama Derecha
+                // 6. Escribir "Existen nodos por derecha?"
+                res = prompt(`Existe nodo derecho en ${apnodo.info}? (s/n)`);
+                if (res && res.toLowerCase() === 's') {
+                    // 14. Crea (OTRO)
+                    let otro = new Nodo('');
+                    // 15. Hacer APNODO^.DER <- OTRO
+                    apnodo.der = otro;
+                    // 16. Regresar a Crea_arbol con APNODO^.DER (Llamada Recursiva)
+                    this.crea_arbol_interactivo(apnodo.der);
+                } else {
+                    // 18. Hacer APNODO^.DER <- NIL
+                    apnodo.der = null;
+                }
+                return true;
+            }
+
+            // Recorridos (métodos auxiliares para la lógica)
+            preorden(apnodo, resultado = []) {
+                if (apnodo !== null) {
+                    resultado.push(apnodo.info); 
+                    this.preorden(apnodo.izq, resultado); 
+                    this.preorden(apnodo.der, resultado); 
+                }
+                return resultado;
+            }
+
+            inorden(apnodo, resultado = []) {
+                if (apnodo !== null) {
+                    this.inorden(apnodo.izq, resultado); 
+                    resultado.push(apnodo.info);         
+                    this.inorden(apnodo.der, resultado); 
+                }
+                return resultado;
+            }
+
+            posorden(apnodo, resultado = []) {
+                if (apnodo !== null) {
+                    this.posorden(apnodo.izq, resultado); 
+                    this.posorden(apnodo.der, resultado); 
+                    resultado.push(apnodo.info);          
+                }
+                return resultado;
+            }
+            
+            clear() {
+                this.raiz = null;
+            }
+        }
+
+        const arbol = new Arbol();
+        const visualizacionDiv = document.getElementById('visualizacion');
+        const resultadoDiv = document.getElementById('resultado');
+        const pseudocodigoDiv = document.getElementById('pseudocodigo');
+        const codigoCSharpDiv = document.getElementById('codigoCSharp');
+
+        // --- Funciones de Interfaz ---
+        
+        // Función recursiva para dibujar el árbol
+        function renderNode(apnodo, isRoot = false) {
+            if (apnodo === null) return null;
+
+            const nodeWrapper = document.createElement('div');
+            nodeWrapper.className = 'node-wrapper';
+
+            const nodeInfo = document.createElement('div');
+            nodeInfo.id = 'node-' + apnodo.info;
+            nodeInfo.className = 'node-info';
+            nodeInfo.textContent = apnodo.info;
+            if (isRoot) {
+                nodeWrapper.classList.add('tree-root');
+                nodeInfo.classList.add('node-root');
+            }
+            nodeWrapper.appendChild(nodeInfo);
+
+            const childrenContainer = document.createElement('div');
+            childrenContainer.className = 'children-container';
+
+            const leftChild = renderNode(apnodo.izq);
+            const rightChild = renderNode(apnodo.der);
+
+            if (leftChild || rightChild) {
+                // Dibujar solo las ramas necesarias
+                const leftLink = document.createElement('div');
+                leftLink.className = 'child-link';
+                if (leftChild) leftLink.appendChild(leftChild);
+                
+                const rightLink = document.createElement('div');
+                rightLink.className = 'child-link';
+                if (rightChild) rightLink.appendChild(rightChild);
+                
+                childrenContainer.appendChild(leftLink);
+                childrenContainer.appendChild(rightLink);
+            }
+            
+            if (childrenContainer.children.length > 0) {
+                nodeWrapper.appendChild(childrenContainer);
+            }
+
+            return nodeWrapper;
+        }
+
+        function updateVisualizacion() {
+            visualizacionDiv.innerHTML = '';
+            if (arbol.raiz === null) {
+                visualizacionDiv.innerHTML = '<div id="arbolVacioMsg" class="text-gray-500 text-lg mt-12">Árbol vacío. Presiona "Crear Árbol" para inicializarlo.</div>';
+                return;
+            }
+
+            const treeHtml = renderNode(arbol.raiz, true);
+            visualizacionDiv.appendChild(treeHtml);
+        }
+
+        function showResult(title, content, isError = false) {
+            resultadoDiv.textContent = title + ': ' + content;
+            resultadoDiv.classList.remove('hidden');
+             if (isError) {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 font-medium';
+            } else {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-arbol-50 border border-arbol-200 text-sm text-arbol-700 font-medium';
+            }
+        }
+
+        function showPseudocodigo(codigo) {
+            pseudocodigoDiv.textContent = codigo;
+        }
+        
+        function showCSharpCode(codigo) { 
+            codigoCSharpDiv.textContent = codigo;
+        }
+        
+        // Simular el paso a paso de un recorrido (simple highlight)
+        function animateRecorrido(recorrido) {
+            let i = 0;
+            // Limpiar highlights previos
+            document.querySelectorAll('.node-info').forEach(circle => {
+                circle.classList.remove('node-visited');
+            });
+
+            function step() {
+                if (i < recorrido.length) {
+                    const nodeChar = recorrido[i];
+                    const nodeElement = document.getElementById('node-' + nodeChar);
+                    if (nodeElement) {
+                        nodeElement.classList.add('node-visited');
+                    }
+                    // Quitar highlight después de un tiempo para mostrar el paso
+                    setTimeout(() => {
+                        if (nodeElement) {
+                            nodeElement.classList.remove('node-visited');
+                        }
+                        i++;
+                        step();
+                    }, 500); // Velocidad de la animación
+                }
+            }
+            step();
+        }
+
+        // --- Pseudocódigos y C# ---
+        
+        const pseudocodigoCreacion = `
+// ALGORITMO Crea_arbol(APNODO) - Versión Recursiva
+1. Leer APNODO^.INFO
+2. Escribir "¿Existe nodo por izquierda? Si: 1, No: 0"
+3. Leer RES
+4. Si (RES=1) entonces
+5.     Crea (OTRO)
+6.     Hacer APNODO^.IZQ <- OTRO
+7.     Regresar a Crea_arbol con APNODO^.IZQ (Llamada Recursiva)
+8. Si no
+9.     Hacer APNODO^.IZQ <- NIL
+10. Fin del condicional
+11. Escribir "Existen nodos por derecha? Si:1, No:0?"
+12. Leer RES
+13. Si (RES=1) entonces
+14.    Crea (OTRO)
+15.    Hacer APNODO^.DER <- OTRO
+16.    Regresar a Crea_arbol con APNODO^.DER (Llamada Recursiva)
+17. Si no
+18.    Hacer APNODO^.DER <- NIL
+19. Fin del condicional
+        `;
+        const csharpCreacion = `
+// Método para crear el árbol binario (recursivo)
+public void crea_arbol(Nodo apnodo)
+{ 
+    char res;
+    Console.WriteLine("Introduce el valor del nodo del arbol");
+    apnodo.info = char.Parse(Console.ReadLine());
+
+    // Rama Izquierda
+    Console.WriteLine("Existe nodo izquierdo en " + apnodo.info + " (SI=s, NO=n)");
+    res = char.Parse(Console.ReadLine());
+    if(res == 's')
+    {
+        Nodo otro = new Nodo(); // Crea un nuevo nodo
+        apnodo.izq = otro;       // Asigna la dirección
+        crea_arbol(apnodo.izq);  // Llamada recursiva
+    }
+    else
+    {
+        apnodo.izq = null;
+    }
+
+    // Rama Derecha
+    Console.WriteLine("Existe nodo derecho en " + apnodo.info + " (SI=s, NO=n)");
+    res = char.Parse(Console.ReadLine());
+    if(res == 's')
+    {
+        Nodo otro = new Nodo();
+        apnodo.der = otro; 
+        crea_arbol(apnodo.der); // Llamada recursiva
+    }
+    else
+    {
+        apnodo.der = null;
+    }
+}
+        `;
+
+        const pseudocodigoPreorden = `
+// ALGORITMO PREORDEN(APNODO)
+1. Si (APNODO != NIL) entonces
+2.     Visitar el APNODO (escribir NODO^.INFO)
+3.     Regresar a PREORDEN con APNODO^.IZQ (Recorrer izquierda)
+4.     Regresar a PREORDEN con APNODO^.DER (Recorrer derecha)
+5. Fin del condicional
+        `;
+        const csharpPreorden = `
+// Método para recorrido en Preorden
+public void preorden (Nodo apnodo)
+{
+    if (apnodo != null)
+    {
+        Console.WriteLine(apnodo.info); // Visitar raíz
+        preorden (apnodo.izq);          // Recorrer izquierda
+        preorden (apnodo.der);          // Recorrer derecha
+    }
+}
+        `;
+        
+        const pseudocodigoInorden = `
+// ALGORITMO INORDEN(APNODO)
+1. Si (APNODO != NIL) entonces
+2.     Regresar a INORDEN con APNODO^.IZQ (Recorrer izquierda)
+3.     Visitar el APNODO (escribir APNODO^.INFO)
+4.     Regresar a INORDEN con APNODO^.DER (Recorrer derecha)
+5. Fin del condicional
+        `;
+        const csharpInorden = `
+// Método para recorrido en Inorden
+public void inorden (Nodo apnodo)
+{
+    if (apnodo != null)
+    {
+        inorden (apnodo.izq);          // Recorrer izquierda
+        Console.WriteLine(apnodo.info); // Visitar raíz
+        inorden (apnodo.der);          // Recorrer derecha
+    }
+}
+        `;
+
+        const pseudocodigoPosorden = `
+// ALGORITMO POSORDEN(APNODO)
+1. Si (APNODO != NIL) entonces
+2.     Regresar a POSORDEN con APNODO^.IZQ (Recorrer izquierda)
+3.     Regresar a POSORDEN con APNODO^.DER (Recorrer derecha)
+4.     Visitar el APNODO (Escribir APNODO^.INFO)
+5. Fin del condicional
+        `;
+        const csharpPosorden = `
+// Método para recorrido en Posorden
+public void posorden (Nodo apnodo)
+{
+    if (apnodo != null)
+    {
+        posorden (apnodo.izq);          // Recorrer izquierda
+        posorden (apnodo.der);          // Recorrer derecha
+        Console.WriteLine(apnodo.info); // Visitar raíz
+    }
+}
+        `;
+        
+        // --- Event Listeners ---
+        
+        document.getElementById('btnCrearArbol').addEventListener('click', () => {
+            arbol.clear();
+            arbol.raiz = new Nodo('');
+            const exito = arbol.crea_arbol_interactivo(arbol.raiz);
+            
+            if (exito) {
+                updateVisualizacion();
+                showPseudocodigo(pseudocodigoCreacion);
+                showCSharpCode(csharpCreacion);
+                showResult('Árbol Creado', '¡Árbol construido! Intenta un recorrido.');
+            } else {
+                arbol.clear();
+                updateVisualizacion();
+                showResult('Creación Cancelada', 'El proceso de construcción del árbol fue cancelado.', true);
+            }
+        });
+
+        document.getElementById('btnPreorden').addEventListener('click', () => {
+            if (arbol.raiz === null) {
+                showResult('Error', 'El árbol está vacío. Crealó primero.', true);
+                return;
+            }
+            const recorrido = arbol.preorden(arbol.raiz);
+            updateVisualizacion();
+            animateRecorrido(recorrido);
+            showPseudocodigo(pseudocodigoPreorden);
+            showCSharpCode(csharpPreorden);
+            showResult('Recorrido PREORDEN', recorrido.join(' -> '));
+        });
+
+        document.getElementById('btnInorden').addEventListener('click', () => {
+            if (arbol.raiz === null) {
+                showResult('Error', 'El árbol está vacío. Crealó primero.', true);
+                return;
+            }
+            const recorrido = arbol.inorden(arbol.raiz);
+            updateVisualizacion();
+            animateRecorrido(recorrido);
+            showPseudocodigo(pseudocodigoInorden);
+            showCSharpCode(csharpInorden);
+            showResult('Recorrido INORDEN', recorrido.join(' -> '));
+        });
+
+        document.getElementById('btnPosorden').addEventListener('click', () => {
+            if (arbol.raiz === null) {
+                showResult('Error', 'El árbol está vacío. Crealó primero.', true);
+                return;
+            }
+            const recorrido = arbol.posorden(arbol.raiz);
+            updateVisualizacion();
+            animateRecorrido(recorrido);
+            showPseudocodigo(pseudocodigoPosorden);
+            showCSharpCode(csharpPosorden);
+            showResult('Recorrido POSORDEN', recorrido.join(' -> '));
+        });
+        
+        document.getElementById('btnClear').addEventListener('click', () => {
+            arbol.clear();
+            updateVisualizacion();
+            showPseudocodigo('Presiona un botón para ver el pseudocódigo correspondiente a la operación.');
+            showCSharpCode('Presiona un botón para ver la implementación del método en C#.');
+            showResult('Estado', 'Árbol vaciado.');
+        });
+
+        // Inicializar la visualización
+        updateVisualizacion();
+    </script>
+</body>
+</html>

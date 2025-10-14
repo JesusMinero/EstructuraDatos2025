@@ -4,976 +4,1061 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Listas Ligadas Simples</title>
-    <!-- Carga de Tailwind CSS para estilos -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        // Color específico para Listas (azul/púrpura)
+                        listas: {
+                            50: '#eff6ff',
+                            500: '#3b82f6', 
+                            600: '#2563eb',
+                            700: '#1e40af',
+                        }
+                    }
                 }
             }
         }
     </script>
     <style>
-        /* Estilos personalizados para el Canvas y la Interfaz */
-        #listCanvas {
-            border: 2px solid #3b82f6; /* Borde azul */
-            background-color: #e0f2f1; /* Fondo claro */
-            margin-top: 1rem;
-            border-radius: 0.5rem;
-            width: 100%;
-            display: block;
+        .gradient-listas {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         }
-
-        /* Clase para animaciones */
-        .flash-yellow {
-            animation: flash 0.5s 3;
-        }
-        @keyframes flash {
-            0%, 100% { background-color: #e0f2f1; }
-            50% { background-color: #fcd34d; }
-        }
-
-        /* Estilo para el contenedor de la lista */
-        .list-container {
-            overflow-x: auto; /* Permite desplazamiento horizontal si la lista es muy larga */
-            padding-bottom: 20px;
-        }
-
-        /* Estilos para el bloque de código del algoritmo */
-        #algorithmDisplay pre {
-            background-color: #f4f4f5; /* gray-100 */
-            padding: 1rem;
-            border-radius: 0.5rem;
+        .listas-visualization {
+            display: flex;
+            align-items: center;
+            height: 100%;
             overflow-x: auto;
-            border: 1px solid #e4e4e7; /* gray-200 */
+            padding: 10px;
         }
-        #algorithmDisplay h3 {
-            font-size: 1.25rem; /* text-xl */
-            font-weight: 600; /* semi-bold */
-            margin-bottom: 0.5rem;
-            color: #1f2937; /* gray-800 */
+        .listas-item {
+            width: 80px;
+            padding: 10px;
+            margin: 0 5px;
+            background-color: #eff6ff;
+            border: 2px solid #3b82f6;
+            text-align: center;
+            font-weight: bold;
+            color: #1e40af;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            position: relative;
+        }
+        .listas-item:not(:last-child)::after {
+            content: "→";
+            position: absolute;
+            right: -18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: #3b82f6;
+            font-weight: normal;
+        }
+        .listas-head {
+            border-color: #ef4444; /* Rojo para el inicio (P) */
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        .listas-ref {
+            border-color: #f59e0b; /* Amarillo para referencia */
+            background-color: #fffbeb;
+            color: #b45309;
+        }
+        .listas-target {
+            border-color: #0d9488; /* Teal para nodo a eliminar/insertar */
+            background-color: #ccfbf1;
+            color: #0f766e;
         }
     </style>
 </head>
-<body class="bg-gray-50 font-sans p-4 sm:p-8">
+<body class="bg-gray-50 font-sans">
 
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-4xl font-extrabold text-blue-800 mb-2">Simulador de Listas Ligadas Simples</h1>
-        <p class="text-gray-600 mb-6">Visualice las operaciones fundamentales de las estructuras de datos dinámicas.</p>
+    <header class="gradient-listas text-white">
+        <div class="container mx-auto px-4 py-8">
+            <a href="index.html" class="text-sm opacity-90 hover:opacity-100 transition duration-300">
+                <i class="fas fa-arrow-left mr-2"></i> Volver a Simuladores
+            </a>
+            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-2 flex items-center">
+                <i class="fas fa-link text-white text-3xl mr-4"></i> Simulador de Listas Ligadas Simples
+            </h1>
+            <p class="text-xl opacity-90">Visualiza la manipulación de nodos en listas enlazadas.</p>
+        </div>
+    </header>
 
-        <!-- Controles de Usuario -->
-        <div class="bg-white p-6 rounded-xl shadow-lg mb-8 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <main class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <input type="number" id="dataInput" placeholder="Valor del nodo (INFO)" 
-                   class="col-span-1 md:col-span-3 lg:col-span-2 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" 
-                   value="10">
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-full">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 border-gray-200">Operaciones de la Lista 💻</h2>
+                
+                <div class="mb-4">
+                    <label for="valorDato" class="block text-sm font-medium text-gray-700 mb-2">Dato (DATO)</label>
+                    <input type="number" id="valorDato" placeholder="Valor del nuevo nodo (X)" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-listas-500 focus:border-listas-500" value="50">
+                </div>
+                <div class="mb-6">
+                    <label for="valorReferencia" class="block text-sm font-medium text-gray-700 mb-2">Referencia (REF)</label>
+                    <input type="number" id="valorReferencia" placeholder="Nodo de referencia (Y)" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-listas-500 focus:border-listas-500">
+                </div>
 
-            <input type="number" id="refInput" placeholder="Valor de referencia (REF)" 
-                   class="col-span-1 md:col-span-3 lg:col-span-1 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" 
-                   value="20">
+                <div class="space-y-2">
+                    <h3 class="text-lg font-semibold border-b pb-1 text-listas-700">Inserción</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btnInsertarInicio" class="bg-listas-600 hover:bg-listas-700 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-arrow-left mr-1"></i> Inserta Inicio
+                        </button>
+                        <button id="btnInsertarFinal" class="bg-listas-600 hover:bg-listas-700 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-arrow-right mr-1"></i> Inserta Final
+                        </button>
+                        <button id="btnInsertaAntesX" class="bg-listas-700 hover:bg-listas-800 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-undo mr-1"></i> Inserta Antes REF
+                        </button>
+                        <button id="btnInsertaDespuesX" class="bg-listas-700 hover:bg-listas-800 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-redo mr-1"></i> Inserta Después REF
+                        </button>
+                    </div>
 
-            <!-- Operación de Creación de Lista Completa -->
-            <button onclick="handleOperation('createListCycle')" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150 col-span-1 md:col-span-2 lg:col-span-2">
-                CREAR LISTA (Ciclo)
-            </button>
+                    <h3 class="text-lg font-semibold border-b pb-1 pt-3 text-red-700">Eliminación</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btnEliminarInicio" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-trash-alt mr-1"></i> Elimina Inicio
+                        </button>
+                        <button id="btnEliminarFinal" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-trash-alt mr-1"></i> Elimina Final
+                        </button>
+                        <button id="btnEliminaAntesX" class="bg-red-700 hover:bg-red-800 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-cut mr-1"></i> Elimina Antes REF
+                        </button>
+                        <button id="btnEliminaDespuesX" class="bg-red-700 hover:bg-red-800 text-white font-semibold py-2 rounded-lg text-xs">
+                            <i class="fas fa-cut mr-1"></i> Elimina Después REF
+                        </button>
+                        <button id="btnEliminarNodoX" class="col-span-2 bg-red-800 hover:bg-red-900 text-white font-semibold py-2 rounded-lg text-sm">
+                            <i class="fas fa-times-circle mr-2"></i> Eliminar Nodo X (DATO)
+                        </button>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold border-b pb-1 pt-3 text-gray-700">Utilidades</h3>
+                    <button id="btnBuscarX" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-search mr-2"></i> Buscar X (DATO)
+                    </button>
+                    <button id="btnRecorrido" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-list-ol mr-2"></i> Mostrar Recorrido
+                    </button>
+                    <button id="btnClear" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-broom mr-2"></i> Vaciar Lista
+                    </button>
+                </div>
 
-            <!-- Operaciones de Inserción Individual -->
-            <button onclick="handleOperation('insertStart')" 
-                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Inserta Inicio
-            </button>
-            <button onclick="handleOperation('insertEnd')" 
-                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Inserta Final
-            </button>
-            <button onclick="handleOperation('insertAfter')" 
-                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Inserta Después de REF
-            </button>
-            <button onclick="handleOperation('insertBefore')" 
-                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Inserta Antes de REF
-            </button>
+                <div id="resultado" class="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700 font-medium hidden">
+                    Resultado de la Operación...
+                </div>
+            </div>
 
+            <div class="lg:col-span-2 space-y-8">
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg h-56">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Visualización de la Lista 📊</h2>
+                    <div id="visualizacion" class="h-3/4 border-2 border-gray-300 rounded-lg p-4 bg-gray-50 listas-visualization">
+                        <div id="listaVaciaMsg" class="text-gray-500 text-lg">Lista vacía (P = NULL)</div>
+                    </div>
+                    <div class="flex justify-start text-sm mt-2">
+                        <p class="text-red-500 font-bold">P (INICIO) →</p>
+                    </div>
+                </div>
 
-            <!-- Operaciones de Eliminación -->
-            <button onclick="handleOperation('deleteStart')" 
-                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Elimina Inicio
-            </button>
-            <button onclick="handleOperation('deleteEnd')" 
-                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Elimina Final
-            </button>
-            <button onclick="handleOperation('deleteByValue')" 
-                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Elimina Nodo X
-            </button>
-            <button onclick="handleOperation('deleteAfter')" 
-                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Elimina Después de REF
-            </button>
-            <button onclick="handleOperation('deleteBefore')" 
-                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Elimina Antes de REF
-            </button>
-            
-            <!-- Utilidades -->
-            <button onclick="handleOperation('search')" 
-                    class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Buscar X
-            </button>
-            <button onclick="handleOperation('showTraversal')" 
-                    class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Mostrar Recorrido
-            </button>
-            <button onclick="handleOperation('clear')" 
-                    class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-150">
-                Vaciar Lista
-            </button>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Pseudocódigo del Algoritmo 📜</h2>
+                    <pre id="pseudocodigo" class="bg-gray-800 text-green-300 p-4 rounded-lg overflow-x-auto text-sm mb-4">
+Presiona un botón para ver el pseudocódigo correspondiente a la operación.
+                    </pre>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Código de Implementación en C\# 💻</h2>
+                    <pre id="codigoCSharp" class="bg-gray-800 text-blue-300 p-4 rounded-lg overflow-x-auto text-sm">
+Presiona un botón para ver la implementación del método en C#.
+                    </pre>
+                </div>
+            </div>
         </div>
+    </main>
 
-        <!-- Área de Visualización y Mensajes -->
-        <div class="bg-white p-6 rounded-xl shadow-xl">
-            <div id="messageBox" class="p-3 mb-4 bg-blue-100 text-blue-700 rounded-lg font-medium">
-                Listo para simular. ¡Crea tu primer nodo!
-            </div>
-            <div class="list-container">
-                <canvas id="listCanvas"></canvas>
-            </div>
-            <div id="statusInfo" class="mt-4 text-sm text-gray-500">
-                Estado: Lista con 0 nodos.
-            </div>
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            <p>&copy; 2023 Simulador de Listas. Estructuras de Datos Lineales.</p>
         </div>
-        
-        <!-- Sección de Algoritmo (Nueva) -->
-        <div id="algorithmSection" class="mt-8 p-6 bg-white rounded-xl shadow-xl">
-            <div id="algorithmDisplay">
-                <h3>Pseudocódigo del Algoritmo</h3>
-                <pre class="text-sm text-gray-800">Presiona un botón para ver el pseudocódigo correspondiente.</pre>
-            </div>
-        </div>
-
-    </div>
+    </footer>
 
     <script>
-        // ==========================================================
-        // CONSTANTES DE CANVAS
-        // ==========================================================
-        const NODE_WIDTH = 80;
-        const NODE_HEIGHT = 40;
-        const POINTER_HEIGHT = 20;
-        const POINTER_LABEL_OFFSET = 25;
-        const ARROW_LENGTH = 30;
-        const HORIZONTAL_GAP = 70; // Espacio entre nodos
-        const CANVAS_HEIGHT = 200;
-        const TEXT_COLOR = '#1f2937'; // gray-800
-        const HEAD_COLOR = '#f59e0b'; // amber-500 (P)
-        const TEMP_COLOR = '#ef4444'; // red-500 (Q/T)
-        const NODE_COLOR = '#34d399'; // emerald-400
-
-        let canvas = null;
-        let ctx = null;
-        let scale = 1.0;
-
-        // ==========================================================
-        // PSEUDOCÓDIGOS (Basados en la metodología Cairo y Guajardo)
-        // ==========================================================
-        const ALGORITHMS = {
-            // ALGORITMOS DE CREACIÓN DE LISTA (CREAINICIO / CREAFINAL)
-            'createListCycle': {
-                title: "CREALISTA (Inserción Correcta en Ciclo: CREAFINAL)",
-                code: `// Algoritmo de su presentación para crear la lista inicial, insertando al final.
-1. CREA(P)
-2. LEER P^.INFORMACION
-3. P^.LIGA = NILL Y T = P // T marca el final
-4. REPETIR
-    CREAR(Q)
-    LEER Q^.INFORMACION
-    Q^.LIGA = NILL
-    T^.LIGA = Q // El anterior apunta al nuevo
-    T = Q // T avanza al nuevo final
-5. HASTA QUE NO HAY INFORMACION`
-            },
-            'CREAINICIO_FULL': {
-                title: "1. Crear Lista (Inserción Inversa: CREAINICIO)",
-                code: `// Se asume que el usuario ingresará datos repetidamente hasta decir 'no'.
-CREA(P)
-LEER P^.INFORMACION
-P^.LIGA = NILL
-REPETIR
-    CREAR(Q)
-    LEER Q^.INFORMACION
-    Q^.LIGA = P
-    P = Q // P se mueve al nuevo nodo
-HASTA QUE NO HAY INFORMACION`
-            },
-            
-            // ALGORITMO DE RECORRIDO (MostrarLista)
-            'showTraversal': {
-                title: "MostrarLista / Recorrido de la Lista",
-                code: `1. Q = P
-2. REPETIR MIENTRAS Q <> NILL
-    ESCRIBIR Q^.INFORMACION
-    Q = Q^.LIGA
-FIN_CICLO`
-            },
-
-            // ALGORITMOS INDIVIDUALES DE INSERCIÓN (Lista Existente)
-            'insertStart': {
-                title: "InsertaInicio (Lista existente)",
-                code: `CREAR(Q)
-Q^.INFORMACION = DATO
-Q^.LIGA = P
-P = Q`
-            },
-            'insertEnd': {
-                title: "InsertaFinal (Lista existente)",
-                code: `T = P
-REPETIR MIENTRAS T^.LIGA <> NILL // Recorrido hasta el penúltimo
-    T = T^.LIGA
-FIN_CICLO
-CREAR(Q)
-Q^.INFORMACION = DATO
-Q^.LIGA = NILL
-T^.LIGA = Q // Enlaza el último nodo al nuevo`
-            },
-            'insertAfter': {
-                title: "InsertaDespuesX (Inserta después de REF)",
-                code: `Q = P
-REPETIR MIENTRAS (Q^.INFORMACION <> REF) Y (Q <> NILL)
-    Q = Q^.LIGA
-FIN_CICLO
-SI Q <> NILL
-    ENTONCES
-        CREAR(T)
-        T^.INFORMACION = DATO
-        T^.LIGA = Q^.LIGA // El nuevo nodo apunta al sucesor de Q
-        Q^.LIGA = T      // Q apunta al nuevo nodo
-    SI_NO
-        ESCRIBIR "Referencia no encontrada"`
-            },
-            'insertBefore': {
-                title: "InsertaAntesX (Inserta antes de REF)",
-                code: `Q = P, T = NILL
-SI P^.INFORMACION = REF
-    ENTONCES
-        // Caso especial: Insertar antes de la cabecera
-    SI_NO
-        REPETIR MIENTRAS (Q^.INFORMACION <> REF) Y (Q <> NILL)
-            T = Q // T es el nodo anterior a Q
-            Q = Q^.LIGA
-        FIN_CICLO
-        SI Q <> NILL
-            ENTONCES
-                CREAR(X)
-                X^.INFORMACION = DATO
-                T^.LIGA = X // El anterior de Q apunta a X
-                X^.LIGA = Q
-            SI_NO
-                ESCRIBIR "Referencia no encontrada"`
-            },
-
-            // ALGORITMOS DE ELIMINACIÓN
-            'deleteStart': {
-                title: "EliminaPrimer (Elimina el primer nodo)",
-                code: `SI P <> NILL
-    ENTONCES
-        Q = P
-        P = Q^.LIGA // P salta al segundo nodo
-        QUITA(Q)
-    SI_NO
-        ESCRIBIR "Lista vacía"`
-            },
-            'deleteEnd': {
-                title: "EliminaUltimo (Elimina el último nodo)",
-                code: `SI P^.LIGA = NILL
-    ENTONCES
-        QUITA(P), P = NILL // Lista con un solo nodo
-    SI_NO
-        T = NILL, Q = P
-        REPETIR MIENTRAS Q^.LIGA <> NILL
-            T = Q // T se queda en el penúltimo
-            Q = Q^.LIGA // Q llega al último
-        FIN_CICLO
-        T^.LIGA = NILL // Desconecta el penúltimo
-        QUITA(Q)`
-            },
-            'deleteByValue': {
-                title: "EliminaNodoX (Elimina nodo con valor X)",
-                code: `Q = P, T = NILL
-REPETIR MIENTRAS (Q^.INFORMACION <> X) Y (Q <> NILL)
-    T = Q
-    Q = Q^.LIGA
-FIN_CICLO
-SI Q <> NILL // Elemento encontrado
-    ENTONCES
-        SI P = Q // Si es el primer nodo
-            ENTONCES P = Q^.LIGA
-            SI_NO T^.LIGA = Q^.LIGA // T salta el nodo Q
-        FIN_CONDICIONAL
-        QUITA(Q)`
-            },
-            'deleteAfter': {
-                title: "EliminaDespuesX (Elimina nodo después de REF)",
-                code: `Q = P
-REPETIR MIENTRAS (Q^.INFORMACION <> REF) Y (Q <> NILL)
-    Q = Q^.LIGA
-FIN_CICLO
-SI Q <> NILL Y Q^.LIGA <> NILL 
-    ENTONCES
-        T = Q^.LIGA // T es el nodo a eliminar
-        Q^.LIGA = T^.LIGA // Q salta a T.LIGA
-        QUITA(T)
-    SI_NO
-        ESCRIBIR "Referencia no encontrada o es el último nodo"`
-            },
-            'deleteBefore': {
-                title: "EliminaAntesX (Elimina nodo antes de REF)",
-                code: `SI P^.INFORMACION = REF
-    ENTONCES ESCRIBIR "No existe predecesor"
-    SI_NO
-        R = P, T = P^.LIGA, Q = T^.LIGA // Configura 3 punteros
-        // ... Lógica de búsqueda avanzada ...
-        SI (Q^.INFORMACION = REF) 
-            ENTONCES
-                R^.LIGA = Q // R (anterior de T) ahora apunta a Q
-                QUITA(T) // Elimina T (el nodo antes de Q)
-            SI_NO
-                ESCRIBIR "Referencia no encontrada..."`
-            },
-            'search': {
-                title: "Busqueda (Búsqueda de un elemento)",
-                code: `Q = P, BAND = TRUE
-REPETIR MIENTRAS (Q^.INFORMACION <> X) y (BAND = TRUE)
-    SI Q^.LIGA <> NILL
-        ENTONCES Q = Q^.LIGA
-        SI_NO BAND = FALSO
-    FIN_CONDICIONAL
-FIN_CICLO
-SI BAND = FALSO
-    ENTONCES ESCRIBIR "Elemento no fue encontrado"
-    SI_NO ESCRIBIR "El elemento está en la lista"`
-            },
-            'clear': {
-                title: "Vaciar Lista",
-                code: `P = NILL`
-            }
-        };
-
-        // ==========================================================
-        // CLASES DE ESTRUCTURA DE DATOS (MODELO)
-        // ==========================================================
-
-        // Clase Nodo (Estructura con INFO y LIGA)
-        class Node {
-            constructor(data) {
-                this.data = data; // Campo INFO
-                this.next = null; // Campo LIGA (puntero)
-                this.x = 0;       // Posición para Canvas
-                this.y = 0;
+        // --- Clase Nodo (Basada en tu PPT) ---
+        class Nodo {
+            constructor(info) {
+                this.INFO = info;
+                this.LIGA = null;
             }
         }
 
-        // Clase Lista Ligada Simple
-        class LinkedList {
+        // --- Clase Lista (Implementación con Lista Ligada Simple) ---
+        class Lista {
             constructor() {
-                this.head = null; // Puntero P
-                this.length = 0;
+                this.P = null; // Puntero al primer nodo
+                this.size = 0;
             }
 
-            // Mapea la lista a un array para facilitar el renderizado
-            toArray() {
-                const nodes = [];
-                let current = this.head;
-                while (current) {
-                    nodes.push(current);
-                    current = current.next;
-                }
-                return nodes;
+            vacia() {
+                return this.P === null;
             }
 
-            // Simula el algoritmo CREALISTA / CREAFINAL en un solo clic.
-            createListInCycle(initialData) {
-                // Se asume que initialData es un array de números [10, 20, 30]
-                if (initialData.length === 0) return "No se proporcionaron datos para crear la lista.";
-                
-                // 1. CREA(P) & 2. LEER P^.INFORMACION (Primer nodo)
-                let P = new Node(initialData[0]);
-                this.head = P;
-                this.length = 1;
-                
-                // 3. P^.LIGA = NILL Y T = P
-                let T = P;
-
-                // 4. REPETIR (para el resto de los datos)
-                for (let i = 1; i < initialData.length; i++) {
-                    const data = initialData[i];
-                    // CREAR(Q)
-                    let Q = new Node(data);
-                    // Q^.LIGA = NILL (Ya es por defecto)
-                    T.next = Q; // T^.LIGA = Q
-                    T = Q; // T = Q
-                    this.length++;
-                }
-                return `Lista creada con ${initialData.length} nodos: [${initialData.join(', ')}].`;
+            // =======================================================
+            // 1. INSERCIÓN
+            // =======================================================
+            insertarInicio(dato) {
+                const Q = new Nodo(dato); 
+                Q.LIGA = this.P;
+                this.P = Q;
+                this.size++;
             }
 
-            // La lógica de showTraversal solo es para mostrar el algoritmo.
-            showTraversal() {
-                if (!this.head) {
-                    return "Recorrido: La lista está vacía.";
-                }
-                const elements = this.toArray().map(n => n.data).join(", ");
-                return `Recorrido: [${elements}]. (Vea el algoritmo abajo)`;
-            }
-
-            // --- Operaciones de Inserción ---
-
-            insertAtStart(data) {
-                const newNode = new Node(data);
-                newNode.next = this.head; // Q^.LIGA = P
-                this.head = newNode;      // P = Q
-                this.length++;
-                return `Elemento ${data} insertado al **Inicio**.`;
-            }
-
-            insertAtEnd(data) {
-                const newNode = new Node(data);
-                this.length++;
-
-                if (!this.head) {
-                    this.head = newNode;
-                    return `Elemento ${data} insertado al **Final** (Lista vacía).`;
-                }
-
-                let T = this.head; // T = P
-                while (T.next) { // Recorrido hasta el final
-                    T = T.next;
-                }
-                T.next = newNode; // T^.LIGA = Q
-                return `Elemento ${data} insertado al **Final**.`;
-            }
-
-            insertAfter(data, refValue) {
-                if (!this.head) {
-                    return `Error: Lista vacía. No se puede insertar después de ${refValue}.`;
-                }
-
-                let Q = this.head; // Q = P
-                while (Q && Q.data !== refValue) { // Búsqueda de REF
-                    Q = Q.next;
-                }
-
-                if (Q) {
-                    const T = new Node(data); // CREA(T)
-                    T.next = Q.next;           // T^.LIGA = Q^.LIGA
-                    Q.next = T;                // Q^.LIGA = T
-                    this.length++;
-                    return `Elemento ${data} insertado **después** de ${refValue}.`;
+            insertarFinal(dato) {
+                const Q = new Nodo(dato);
+                if (this.vacia()) {
+                    this.P = Q;
                 } else {
-                    return `Error: Referencia ${refValue} no encontrada.`;
+                    let T = this.P;
+                    while (T.LIGA !== null) {
+                        T = T.LIGA;
+                    }
+                    T.LIGA = Q;
                 }
+                this.size++;
             }
-            
-            // Método: Inserta Antes de REF
-            insertBefore(data, refValue) {
-                if (!this.head) {
-                    return `Error: Lista vacía. No se puede insertar antes de ${refValue}.`;
-                }
 
-                // Caso 1: Insertar antes del primer nodo
-                if (this.head.data === refValue) {
-                    this.insertAtStart(data);
-                    return `Elemento ${data} insertado **antes** de ${refValue} (Nuevo inicio).`;
-                }
-
-                // Caso 2: Búsqueda en el resto de la lista (utiliza T como anterior)
-                let T = null; 
-                let Q = this.head; 
-
-                while (Q && Q.data !== refValue) {
+            insertarAntesX(dato, refX) {
+                if (this.vacia()) return false;
+                
+                let Q = this.P;
+                let T = null; // T es el nodo anterior a Q
+                let encontrado = false;
+                
+                // Recorrido hasta encontrar REF o llegar al final
+                while (Q !== null) {
+                    if (Q.INFO === refX) {
+                        encontrado = true;
+                        break;
+                    }
                     T = Q; 
-                    Q = Q.next; 
+                    Q = Q.LIGA;
                 }
 
-                if (Q) {
-                    const X = new Node(data); // CREAR(X)
-                    
-                    T.next = X;    // T^.LIGA = X
-                    X.next = Q;    // X^.LIGA = Q
-                    this.length++;
-                    return `Elemento ${data} insertado **antes** de ${refValue}.`;
-                } else {
-                    return `Error: Referencia ${refValue} no encontrada.`;
+                if (!encontrado) return false;
+
+                const X = new Nodo(dato); // CREAR(X)
+                
+                if (T === null) { // Caso 1: Insertar Antes del Primer Nodo (Q es P)
+                    X.LIGA = this.P;
+                    this.P = X;
+                } else { // Caso 2: Insertar en medio (T es el anterior de Q)
+                    T.LIGA = X;
+                    X.LIGA = Q;
                 }
+                this.size++;
+                return true;
             }
 
+            insertarDespuesX(dato, refX) {
+                if (this.vacia()) return false;
 
-            // --- Operaciones de Eliminación ---
+                let Q = this.P; // Q es el nodo de referencia REF
 
-            deleteAtStart() {
-                if (!this.head) {
-                    return "Error: La lista está vacía. No hay nada que eliminar.";
+                // Buscar REF
+                while (Q !== null && Q.INFO !== refX) {
+                    Q = Q.LIGA;
                 }
-                const deletedData = this.head.data;
-                this.head = this.head.next; // P = Q^.LIGA
-                this.length--;
-                return `Elemento ${deletedData} eliminado del **Inicio**.`;
+
+                if (Q === null) return false; // REF no encontrado
+
+                const T = new Nodo(dato); // CREAR(T)
+                
+                T.LIGA = Q.LIGA; // T^.LIGA = Q^.LIGA
+                Q.LIGA = T;      // Q^.LIGA = T
+                
+                this.size++;
+                return true;
             }
 
-            deleteAtEnd() {
-                if (!this.head) {
-                    return "Error: La lista está vacía.";
-                }
+            // =======================================================
+            // 2. ELIMINACIÓN
+            // =======================================================
+            eliminarInicio() {
+                if (this.vacia()) return false;
                 
-                if (!this.head.next) { // Caso de un solo nodo
-                    const data = this.head.data;
-                    this.head = null;
-                    this.length--;
-                    return `Elemento ${data} eliminado (Único nodo).`;
+                this.P = this.P.LIGA; // P=Q^.LIGA
+                this.size--;
+                return true; 
+            }
+
+            eliminarFinal() {
+                if (this.vacia()) return false;
+                
+                if (this.P.LIGA === null) { // Solo hay un nodo
+                    this.P = null;
+                    this.size--;
+                    return true;
                 }
 
-                let T = this.head; // T (anterior)
-                let Q = this.head.next; // Q (actual)
+                let Q = this.P;
+                let T = null; // T es el anterior (penúltimo)
+
+                while (Q.LIGA !== null) {
+                    T = Q; 
+                    Q = Q.LIGA;
+                }
                 
-                while (Q.next) { // Recorrido: T sigue a Q hasta que Q sea el último
+                T.LIGA = null; // T^.LIGA=NILL
+                this.size--;
+                return true;
+            }
+
+            eliminarNodoX(datoX) {
+                if (this.vacia()) return false;
+                
+                let Q = this.P;
+                let T = null; // T es el anterior a Q
+
+                while (Q !== null && Q.INFO !== datoX) {
                     T = Q;
-                    Q = Q.next;
+                    Q = Q.LIGA;
                 }
                 
-                T.next = null; // T^.LIGA = NILL (Elimina el enlace al último)
-                this.length--;
-                return `Elemento ${Q.data} eliminado del **Final**.`;
+                if (Q === null) return false; // No encontrado
+
+                if (T === null) { // Es el primer nodo (P=Q)
+                    this.P = Q.LIGA; 
+                } else { // T es el anterior de Q
+                    T.LIGA = Q.LIGA; 
+                }
+                this.size--;
+                return true;
             }
 
-            deleteByValue(value) {
-                if (!this.head) {
-                    return "Error: La lista está vacía.";
-                }
-
-                // 1. Caso: El nodo a eliminar es la cabeza (P=Q)
-                if (this.head.data === value) {
-                    this.head = this.head.next; // P = Q^.LIGA
-                    this.length--;
-                    return `Elemento ${value} eliminado (Era el primer nodo).`;
-                }
-
-                // 2. Caso: Búsqueda en el resto de la lista
-                let T = this.head; // T (Anterior)
-                let Q = this.head.next; // Q (Actual)
+            eliminarAntesX(refX) {
+                if (this.vacia() || this.P.INFO === refX) return false; // No se puede eliminar antes del primero
                 
-                while (Q && Q.data !== value) {
-                    T = Q;
-                    Q = Q.next;
+                let Q = this.P; // Nodo de Referencia REF
+                let T = null; // Nodo Anterior a REF (el que se quiere eliminar)
+                let R = null; // Nodo Anterior a T (el que se queda enlazado)
+
+                // Buscar (T) y (R) tal que R -> T -> Q(REF)
+                while (Q !== null && Q.INFO !== refX) {
+                    R = T; // R guarda la posición de T anterior
+                    T = Q; // T guarda la posición de Q anterior
+                    Q = Q.LIGA;
                 }
 
-                if (Q) {
-                    T.next = Q.next; // T^.LIGA = Q^.LIGA
-                    this.length--;
-                    return `Elemento ${value} eliminado.`;
-                } else {
-                    return `Error: Elemento ${value} no encontrado para eliminar.`;
+                if (Q === null) return false; // REF no encontrado
+
+                if (T === this.P) { // Si el nodo a eliminar (T) es el primero (P)
+                    this.P = Q; // P salta al nodo REF (Q)
+                } else { // Si T es un nodo intermedio
+                    R.LIGA = Q; // R salta a Q (eliminando a T)
                 }
+
+                this.size--;
+                return true;
             }
             
-            // Método: Eliminar Después de REF
-            deleteAfter(refValue) {
-                if (!this.head) {
-                    return "Error: La lista está vacía. No hay nada que eliminar.";
-                }
+            eliminarDespuesX(refX) {
+                if (this.vacia()) return false;
                 
-                // Buscar el nodo de referencia (Q)
-                let Q = this.head; 
-                while (Q && Q.data !== refValue) {
-                    Q = Q.next;
+                let Q = this.P; // Nodo de Referencia REF
+
+                // Buscar REF
+                while (Q !== null && Q.INFO !== refX) {
+                    Q = Q.LIGA;
                 }
 
-                if (!Q) {
-                    return `Error: Referencia ${refValue} no encontrada.`;
-                }
+                if (Q === null || Q.LIGA === null) return false; // REF no encontrado o es el último
 
-                // Si Q existe, verificar que tenga un nodo después para eliminar
-                if (!Q.next) {
-                    return `Error: El nodo ${refValue} es el último. No hay nodo después para eliminar.`;
-                }
-
-                // El nodo a eliminar es el que sigue a Q (T)
-                let T = Q.next;
-                const deletedData = T.data;
-
-                // Redireccionar la liga de Q para que salte a T.next
-                Q.next = T.next; // Q^.LIGA = T^.LIGA
+                // Q es REF, Q.LIGA es el nodo a eliminar (W), Q.LIGA.LIGA es el siguiente de W
+                const W = Q.LIGA;
+                Q.LIGA = W.LIGA; // Q^.LIGA = Q^.LIGA^.LIGA
                 
-                this.length--;
-                return `Elemento ${deletedData} eliminado **después** de ${refValue}.`;
+                this.size--;
+                return true;
             }
-
-            // Método: Eliminar Antes de REF (Utiliza tres punteros: R, T, Q)
-            deleteBefore(refValue) {
-                if (!this.head) {
-                    return "Error: Lista vacía. No se puede eliminar antes de nada.";
+            
+            // =======================================================
+            // 3. OTRAS
+            // =======================================================
+            buscar(datoX) {
+                let Q = this.P;
+                while (Q !== null) {
+                    if (Q.INFO === datoX) {
+                        return Q.INFO;
+                    }
+                    Q = Q.LIGA;
                 }
-
-                // Caso 1: El nodo de referencia es la cabeza (No hay nodo antes)
-                if (this.head.data === refValue) {
-                    return `Error: No existe un nodo que preceda a la cabeza (${refValue}).`;
-                }
-                
-                // Caso 2: La lista solo tiene uno o dos nodos
-                if (!this.head.next || (this.head.next.data === refValue && !this.head.next.next)) {
-                     // Solo hay un nodo antes de la referencia
-                     if (this.head.next && this.head.next.data === refValue) {
-                         const deletedData = this.head.data;
-                         this.head = this.head.next; // Elimina la cabeza (el nodo antes de REF)
-                         this.length--;
-                         return `Elemento ${deletedData} eliminado (Era el único antes de ${refValue}).`;
-                     }
-                    return `Error: Se necesitan al menos 3 nodos para esta operación si la referencia no es el segundo nodo.`;
-                }
-                
-                // Caso 3: Búsqueda general (R: anterior de T, T: nodo a eliminar, Q: nodo de referencia)
-                let R = this.head;      // R (anterior de T)
-                let T = this.head.next; // T (nodo a eliminar)
-                let Q = T ? T.next : null; // Q (referencia)
-
-                // El ciclo debe buscar hasta que Q encuentre la referencia
-                while (Q && Q.data !== refValue) {
-                    R = T;      // R avanza a T
-                    T = Q;      // T avanza a Q
-                    Q = Q.next; // Q avanza un paso más
-                }
-
-                if (Q && Q.data === refValue) {
-                    // Si encontramos Q (la referencia), T es el nodo a eliminar y R es su anterior.
-                    const deletedData = T.data;
-                    R.next = Q; // R^.LIGA = Q (Elimina T)
-                    this.length--;
-                    return `Elemento ${deletedData} eliminado **antes** de ${refValue}.`;
-                } else {
-                    return `Error: Referencia ${refValue} no encontrada.`;
-                }
+                return false;
             }
-
-
-            // --- Operaciones de Búsqueda y Recorrido ---
-
-            search(value) {
-                if (!this.head) {
-                    return `Búsqueda: ${value} **NO** encontrado. Lista vacía.`;
+            
+            mostrar() {
+                let reco = this.P;
+                let elementos = [];
+                while (reco !== null) {
+                    elementos.push(reco.INFO);
+                    reco = reco.LIGA;
                 }
-                let Q = this.head; // Q = P
-                while (Q && Q.data !== value) { // Recorrido
-                    Q = Q.next;
-                }
-
-                if (Q) {
-                    // Animación de flasheo del nodo encontrado
-                    drawList(this.toArray(), value); 
-                    return `Búsqueda: Elemento ${value} **ENCONTRADO**.`;
-                } else {
-                    return `Búsqueda: Elemento ${value} **NO** fue encontrado.`;
-                }
+                return elementos.join(' → ');
             }
-
-
-            // --- Operación de Vaciado ---
+            
             clear() {
-                this.head = null;
-                this.length = 0;
-                return "Lista completamente **vacía**. Inicia de nuevo.";
+                this.P = null;
+                this.size = 0;
             }
         }
 
-        // ==========================================================
-        // LÓGICA DE VISUALIZACIÓN (CANVAS)
-        // ==========================================================
-        let list = new LinkedList();
+        const lista = new Lista();
+        const valorDatoInput = document.getElementById('valorDato');
+        const valorReferenciaInput = document.getElementById('valorReferencia');
+        const visualizacionDiv = document.getElementById('visualizacion');
+        const resultadoDiv = document.getElementById('resultado');
+        const pseudocodigoDiv = document.getElementById('pseudocodigo');
+        const codigoCSharpDiv = document.getElementById('codigoCSharp');
 
-        /**
-         * Dibuja una flecha entre dos puntos.
-         */
-        function drawArrow(x1, y1, x2, y2, color = TEXT_COLOR, headLength = 10) {
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+        // --- Funciones de Interfaz ---
+
+        function updateVisualizacion(refValue = null, targetValue = null) {
+            visualizacionDiv.innerHTML = ''; 
+            let reco = lista.P;
+            let index = 0;
             
-            // Línea principal
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-
-            // Dibujar la punta de flecha
-            const angle = Math.atan2(y2 - y1, x2 - x1);
-            ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
-            ctx.moveTo(x2, y2);
-            ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
-            ctx.stroke();
-            ctx.closePath();
-        }
-
-        /**
-         * Dibuja un nodo en el canvas.
-         */
-        function drawNode(node, x, y, isHead = false, isTarget = false) {
-            node.x = x;
-            node.y = y;
-
-            // 1. Dibujar el cuerpo del nodo (INFORMACION + LIGA)
-            ctx.fillStyle = isTarget ? NODE_COLOR : '#fff'; // Fondo blanco, verde si es el nodo encontrado
-            ctx.strokeStyle = TEXT_COLOR;
-            ctx.lineWidth = 2;
-            ctx.fillRect(x, y, NODE_WIDTH, NODE_HEIGHT);
-            ctx.strokeRect(x, y, NODE_WIDTH, NODE_HEIGHT);
-
-            // 2. Separador entre INFO y LIGA
-            const splitX = x + NODE_WIDTH * 0.7;
-            ctx.beginPath();
-            ctx.moveTo(splitX, y);
-            ctx.lineTo(splitX, y + NODE_HEIGHT);
-            ctx.stroke();
-            ctx.closePath();
-
-            // 3. Dibujar la INFORMACION (Dato)
-            ctx.fillStyle = TEXT_COLOR;
-            ctx.font = '16px Inter';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(node.data, x + NODE_WIDTH * 0.35, y + NODE_HEIGHT / 2);
-
-            // 4. Dibujar Puntero P si es el inicio
-            if (isHead) {
-                drawArrow(x, y - POINTER_HEIGHT, x, y, HEAD_COLOR);
-                ctx.fillStyle = HEAD_COLOR;
-                ctx.fillText('P', x, y - POINTER_LABEL_OFFSET);
-            }
-        }
-
-        /**
-         * Dibuja la lista completa con sus ligas.
-         */
-        function drawList(nodes, targetValue = null) {
-            if (!ctx) return;
-            
-            // Ajustar el tamaño del canvas al contenido
-            const requiredWidth = nodes.length * (NODE_WIDTH + HORIZONTAL_GAP) + HORIZONTAL_GAP;
-            canvas.width = Math.max(canvas.parentElement.clientWidth, requiredWidth);
-            canvas.height = CANVAS_HEIGHT;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            if (nodes.length === 0) {
-                ctx.fillStyle = TEXT_COLOR;
-                ctx.font = '20px Inter';
-                ctx.textAlign = 'center';
-                ctx.fillText('Lista vacía (P = NILL)', canvas.width / 2, CANVAS_HEIGHT / 2);
-                document.getElementById('statusInfo').innerText = `Estado: Lista con 0 nodos.`;
+            if (lista.vacia()) {
+                visualizacionDiv.innerHTML = '<div id="listaVaciaMsg" class="text-gray-500 text-lg">Lista vacía (P = NULL)</div>';
                 return;
             }
 
-            const startX = HORIZONTAL_GAP / 2;
-            const startY = (CANVAS_HEIGHT - NODE_HEIGHT) / 2;
-            let currentX = startX;
-
-            // Dibuja Nodos y calcula posiciones
-            nodes.forEach((node, index) => {
-                const isHead = index === 0;
-                const isTarget = node.data == targetValue; // Usamos == para comparar número con string de input
-                drawNode(node, currentX, startY, isHead, isTarget);
-                currentX += NODE_WIDTH + HORIZONTAL_GAP;
-            });
-
-            // Dibuja las Ligas (Flechas)
-            for (let i = 0; i < nodes.length; i++) {
-                const current = nodes[i];
-                if (current.next) {
-                    const next = nodes[i + 1];
-                    // Origen de la flecha (mitad del campo LIGA)
-                    const x1 = current.x + NODE_WIDTH * 0.85; 
-                    const y1 = current.y + NODE_HEIGHT / 2;
-                    // Destino de la flecha (inicio del siguiente nodo)
-                    const x2 = next.x; 
-                    const y2 = next.y + NODE_HEIGHT / 2;
-                    
-                    drawArrow(x1, y1, x2, y2);
-                } else {
-                    // Dibuja NILL/NULL al final
-                    const x = current.x + NODE_WIDTH * 0.7;
-                    const y = current.y + NODE_HEIGHT * 0.75;
-                    ctx.fillStyle = TEMP_COLOR;
-                    ctx.font = '14px Inter';
-                    ctx.fillText('NILL', x + 5, y + 20);
+            while (reco !== null) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'listas-item';
+                
+                if (index === 0) {
+                    itemDiv.classList.add('listas-head');
                 }
+                if (refValue !== null && reco.INFO == refValue) {
+                    itemDiv.classList.add('listas-ref');
+                }
+                if (targetValue !== null && reco.INFO == targetValue && reco.INFO != refValue) {
+                    itemDiv.classList.add('listas-target');
+                }
+
+                itemDiv.textContent = reco.INFO;
+                visualizacionDiv.appendChild(itemDiv);
+                reco = reco.LIGA;
+                index++;
             }
-            document.getElementById('statusInfo').innerText = `Estado: Lista con ${list.length} nodos.`;
         }
 
-        // ==========================================================
-        // MANEJO DE EVENTOS E INTERFAZ
-        // ==========================================================
+        function showResult(message, isError = false) {
+            resultadoDiv.textContent = message;
+            resultadoDiv.classList.remove('hidden');
+            if (isError) {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 font-medium';
+            } else {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-listas-50 border border-listas-200 text-sm text-listas-700 font-medium';
+            }
+            setTimeout(() => resultadoDiv.classList.add('hidden'), 5000);
+        }
+
+        function showPseudocodigo(codigo) {
+            pseudocodigoDiv.textContent = codigo;
+        }
         
-        // Inicializa el Canvas al cargar la ventana
-        window.onload = function () {
-            canvas = document.getElementById('listCanvas');
-            ctx = canvas.getContext('2d');
-            
-            // Dibuja la lista inicial (vacía)
-            drawList(list.toArray()); 
+        function showCSharpCode(codigo) { 
+            codigoCSharpDiv.textContent = codigo;
+        }
 
-            // Manejo de redimensionamiento para mantener la responsividad del canvas
-            window.addEventListener('resize', () => drawList(list.toArray()));
-        };
+        // --- Pseudocódigos y C# ---
         
-        /**
-         * Muestra el pseudocódigo correspondiente en la sección AlgorithmDisplay.
-         */
-        function showAlgorithm(operationKey) {
-            const algorithmData = ALGORITHMS[operationKey];
-            const algorithmDisplay = document.getElementById('algorithmDisplay');
-
-            if (algorithmData) {
-                algorithmDisplay.innerHTML = `
-                    <h3>${algorithmData.title}</h3>
-                    <pre class="text-sm text-gray-800">${algorithmData.code}</pre>
-                `;
-            }
+        // --- Inserción ---
+        const pseudocodigoInsertarInicio = `
+// Operación: Insertar un nodo al inicio de la lista
+1. CREAR(Q)
+2. Q^.INFORMACION = DATO
+3. Q^.LIGA = P
+4. P = Q
+        `;
+        const csharpInsertarInicio = `
+// Método para insertar un nodo al inicio de la lista
+public void InsertaInicio(int dato)
+{
+    Nodo Q = new Nodo();
+    Q.INFO = dato;
+    Q.LIGA = P;
+    P = Q;
+}
+        `;
+        
+        const pseudocodigoInsertarFinal = `
+// Operación: Insertar un nodo al final de la lista
+1. CREAR(Q)
+2. Q^.INFORMACION = DATO, Q^.LIGA = NILL
+3. SI (P = NILL)
+4.     P = Q
+5. SINO
+6.     T = P
+7.     REPETIR MIENTRAS T^.LIGA <> NILL
+8.         T = T^.LIGA
+9.     FIN_CICLO
+10.    T^.LIGA = Q
+11. FIN_SI
+        `;
+        const csharpInsertarFinal = `
+// Método para insertar un nodo al final de la lista
+public void InsertaFinal(int dato)
+{
+    Nodo Q = new Nodo();
+    Q.INFO = dato;
+    Q.LIGA = null;
+    
+    if (P == null)
+    {
+        P = Q;
+    }
+    else
+    {
+        Nodo T = P;
+        while (T.LIGA != null)
+        {
+            T = T.LIGA;
         }
+        T.LIGA = Q;
+    }
+}
+        `;
+        
+        const pseudocodigoInsertaAntesX = `
+// Operación: Inserta un nodo antes de un dato de REFERENCIA (Q)
+1. Q=P, T=NILL, BAND=TRUE
+2. REPETIR MIENTRAS (Q^.INFO <> REF) Y (Q^.LIGA <> NILL)
+3.     T=Q, Q=Q^.LIGA
+4. FIN_CICLO
+5. SI Q^.INFO = REF
+6.     CREAR(X), X^.INFO = DATO
+7.     SI P = Q // Insertar antes del primero
+8.         X^.LIGA = P, P = X
+9.     SI_NO // Insertar en medio
+10.        T^.LIGA = X, X^.LIGA = Q
+11.    FIN_CONDICIONAL
+12. FIN_CONDICIONAL
+        `;
+        const csharpInsertaAntesX = `
+// Método para insertar antes de un nodo de referencia (REF)
+public bool InsertaAntesX(int dato, int REF)
+{
+    Nodo Q = P;
+    Nodo T = null; 
 
-        /**
-         * Función central para manejar las operaciones de la lista.
-         */
-        function handleOperation(operation) {
-            
-            let algorithmKey = operation;
+    while (Q != null && Q.INFO != REF)
+    {
+        T = Q;
+        Q = Q.LIGA;
+    }
 
-            // Mapeo especial para los pseudocódigos
-            if (operation === 'createListCycle') {
-                algorithmKey = 'createListCycle';
-            } else if (operation === 'insertStart' && list.length === 0) {
-                 algorithmKey = 'CREAINICIO_FULL'; // Se usa solo por el nombre del algoritmo de creación
-            } else if (operation === 'insertEnd' && list.length === 0) {
-                 algorithmKey = 'CREAFINAL_FULL'; // Se usa solo por el nombre del algoritmo de creación
-            } else if (operation === 'insertStart') {
-                 algorithmKey = 'insertStart'; 
-            } else if (operation === 'insertEnd') {
-                 algorithmKey = 'insertEnd'; 
-            }
-            
-            // Si es un recorrido, solo mostramos el pseudocódigo, la ejecución ya se ve al dibujar.
-            if (operation === 'showTraversal') {
-                showAlgorithm(operation);
-                messageBox.className = 'p-3 mb-4 bg-blue-100 text-blue-700 rounded-lg font-medium';
-                messageBox.innerHTML = list.showTraversal();
-                return;
-            }
-            
-            // Mostrar el pseudocódigo ANTES de ejecutar la operación
-            showAlgorithm(algorithmKey); 
+    if (Q == null) return false; // REF no encontrado
 
-            const dataInput = document.getElementById('dataInput');
-            const refInput = document.getElementById('refInput');
-            const messageBox = document.getElementById('messageBox');
-            let message = "";
-            let data = parseInt(dataInput.value);
-            let refValue = parseInt(refInput.value);
-            let targetValue = null;
+    Nodo X = new Nodo();
+    X.INFO = dato;
 
-            if (operation !== 'clear' && operation.includes('insert') && operation !== 'createListCycle' && isNaN(data)) {
-                messageBox.className = 'p-3 mb-4 bg-red-100 text-red-700 rounded-lg font-medium';
-                messageBox.innerHTML = "Error: Por favor, ingrese un valor de dato válido (INFO).";
-                return;
-            }
-            
-            // Validación específica para operaciones que requieren REF
-            if (['insertAfter', 'insertBefore', 'deleteByValue', 'deleteAfter', 'deleteBefore', 'search'].includes(operation) && isNaN(refValue)) {
-                messageBox.className = 'p-3 mb-4 bg-red-100 text-red-700 rounded-lg font-medium';
-                messageBox.innerHTML = "Error: Por favor, ingrese un valor de referencia válido (REF).";
-                return;
-            }
+    if (T == null) // Q es el primer nodo (P)
+    {
+        X.LIGA = P;
+        P = X;
+    }
+    else // T es el anterior de Q
+    {
+        T.LIGA = X;
+        X.LIGA = Q;
+    }
+    return true;
+}
+        `;
 
-            try {
-                // Lógica especial para CREAR LISTA (Ciclo)
-                if (operation === 'createListCycle') {
-                    if (list.length > 0) {
-                         messageBox.className = 'p-3 mb-4 bg-yellow-100 text-yellow-700 rounded-lg font-medium';
-                         messageBox.innerHTML = "Error: ¡La lista ya tiene elementos! Vaciéla antes de crear una nueva en ciclo.";
-                         return;
-                    }
-                    // Simulamos la entrada de datos múltiples. Usamos prompt() porque no podemos crear un modal complejo
-                    // en este entorno sin romper la regla de un solo archivo.
-                    const input = prompt("Ingrese los datos separados por comas (ej: 10,20,30,40):");
-                    if (input === null || input.trim() === "") {
-                        message = "Creación de lista cancelada.";
-                    } else {
-                        const dataArray = input.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-                        if (dataArray.length > 0) {
-                            message = list.createListInCycle(dataArray);
-                        } else {
-                            message = "Error: No se ingresaron números válidos.";
-                        }
-                    }
-                }
-                
-                // Ejecución de operaciones individuales
-                else {
-                    switch (operation) {
-                        case 'insertStart':
-                            message = list.insertAtStart(data);
-                            break;
-                        case 'insertEnd':
-                            message = list.insertAtEnd(data);
-                            break;
-                        case 'insertAfter':
-                            message = list.insertAfter(data, refValue);
-                            break;
-                        case 'insertBefore':
-                            message = list.insertBefore(data, refValue);
-                            break;
-                        case 'deleteStart':
-                            message = list.deleteAtStart();
-                            break;
-                        case 'deleteEnd':
-                            message = list.deleteAtEnd();
-                            break;
-                        case 'deleteByValue':
-                            message = list.deleteByValue(refValue);
-                            break;
-                        case 'deleteAfter':
-                            message = list.deleteAfter(refValue);
-                            break;
-                        case 'deleteBefore':
-                            message = list.deleteBefore(refValue);
-                            break;
-                        case 'search':
-                            targetValue = refValue;
-                            message = list.search(refValue);
-                            break;
-                        case 'clear':
-                            message = list.clear();
-                            break;
-                        default:
-                            message = "Operación no reconocida.";
-                    }
-                }
-                
-                // Actualizar la visualización de la lista
-                drawList(list.toArray(), targetValue); 
-                
-                // Mostrar mensaje de éxito/resultado
-                messageBox.className = 'p-3 mb-4 bg-blue-100 text-blue-700 rounded-lg font-medium';
-                messageBox.innerHTML = message;
-                
-            } catch (error) {
-                console.error("Error en la operación de lista:", error);
-                messageBox.className = 'p-3 mb-4 bg-red-100 text-red-700 rounded-lg font-medium';
-                messageBox.innerHTML = `Error interno: ${error.message}`;
-            }
+        const pseudocodigoInsertaDespuesX = `
+// Operación: Inserta un nodo después de un dato de REFERENCIA (Q)
+1. Q=P, BAND=TRUE
+2. REPETIR MIENTRAS (Q^.INFO <> REF) Y (Q^.LIGA <> NILL)
+3.     Q=Q^.LIGA
+4. FIN_DEL_CICLO
+5. SI Q^.INFO = REF
+6.     CREA(T), T^.INFO = DATO
+7.     T^.LIGA = Q^.LIGA
+8.     Q^.LIGA = T
+9. FIN_CONDICIONAL
+        `;
+        const csharpInsertaDespuesX = `
+// Método para insertar después de un nodo de referencia (REF)
+public bool InsertaDespuesX(int dato, int REF)
+{
+    Nodo Q = P;
+
+    while (Q != null && Q.INFO != REF)
+    {
+        Q = Q.LIGA;
+    }
+
+    if (Q == null) return false; // REF no encontrado
+
+    Nodo T = new Nodo();
+    T.INFO = dato;
+    
+    T.LIGA = Q.LIGA; // Enlaza T al resto de la lista
+    Q.LIGA = T;      // Enlaza Q al nuevo nodo T
+    
+    return true;
+}
+        `;
+
+        // --- Eliminación ---
+        const pseudocodigoEliminarInicio = `
+// Operación: Eliminar el primer nodo
+1. Q = P
+2. SI Q^.LIGA <> NILL
+3.     P = Q^.LIGA
+4. SI_NO
+5.     P = NILL
+6. FIN_CONDICIONAL
+7. QUITA(Q)
+        `;
+        const csharpEliminarInicio = `
+// Método para eliminar el primer nodo
+public bool EliminaPrimer()
+{
+    if (P == null) return false;
+    
+    if (P.LIGA != null)
+    {
+        P = P.LIGA;
+    }
+    else
+    {
+        P = null;
+    }
+    return true; 
+}
+        `;
+
+        const pseudocodigoEliminarFinal = `
+// Operación: Eliminar el último nodo
+1. SI P^.LIGA = NILL
+2.     QUITA(P), P = NILL
+3. SI_NO
+4.     Q = P, T = NILL
+5.     REPETIR MIENTRAS Q^.LIGA <> NILL
+6.         T = Q, Q = Q^.LIGA
+7.     FIN_CICLO
+8.     T^.LIGA = NILL
+9.     QUITA(Q)
+10. FIN_CONDICIONAL
+        `;
+        const csharpEliminarFinal = `
+// Método para eliminar el último nodo
+public bool EliminaUltimo()
+{
+    if (P == null) return false;
+
+    if (P.LIGA == null) 
+    {
+        P = null;
+        return true;
+    }
+
+    Nodo Q = P;
+    Nodo T = null; 
+
+    while (Q.LIGA != null)
+    {
+        T = Q;
+        Q = Q.LIGA;
+    }
+
+    T.LIGA = null;
+    return true;
+}
+        `;
+        
+        const pseudocodigoEliminarNodoX = `
+// Operación: Eliminar un nodo con Información X
+1. Q=P, T=NILL
+2. REPETIR MIENTRAS (Q^.INFO <> X) Y (Q^.LIGA <> NILL)
+3.     T=Q, Q=Q^.LIGA
+4. FIN_CICLO
+5. SI Q^.INFO <> X
+6.     ESCRIBIR “ELEMENTO NO ENCONTRADO”
+7. SI_NO
+8.     SI P = Q // Es el primer nodo
+9.         P = Q^.LIGA
+10.    SI_NO // Es un nodo intermedio/final
+11.        T^.LIGA = Q^.LIGA
+12.    FIN_CONDICIONAL
+13.    QUITA(Q)
+14. FIN_CONDICIONAL
+        `;
+        const csharpEliminarNodoX = `
+// Método para eliminar un nodo con información X
+public bool EliminaNodoX(int X)
+{
+    Nodo Q = P;
+    Nodo T = null;
+
+    while (Q != null && Q.INFO != X)
+    {
+        T = Q;
+        Q = Q.LIGA;
+    }
+
+    if (Q == null) return false;
+
+    if (T == null) // Es el primer nodo
+    {
+        P = Q.LIGA;
+    }
+    else 
+    {
+        T.LIGA = Q.LIGA;
+    }
+    return true; 
+}
+        `;
+        
+        const pseudocodigoEliminaAntesX = `
+// Operación: Eliminar el nodo ANTES de REFERENCIA (Q)
+1. SI (P = NILL) O (P^.INFO = REF) // No se puede antes del 1ro
+2.     RETORNAR ERROR
+3. Q=P, T=NILL, R=NILL
+4. REPETIR MIENTRAS Q^.INFO <> REF
+5.     R=T, T=Q, Q=Q^.LIGA // R apunta a T, T apunta a Q(REF)
+6. FIN_CICLO
+7. SI (Q = NILL) RETORNAR ERROR // REF no encontrado
+8. SI (T = P) // El nodo a eliminar (T) es el primero
+9.     P = Q // P salta al nodo REF
+10. SI_NO // T es intermedio (R existe)
+11.    R^.LIGA = Q // R salta a Q (eliminando T)
+12. FIN_CONDICIONAL
+13. QUITA(T)
+        `;
+        const csharpEliminaAntesX = `
+// Método para eliminar el nodo anterior a REF
+public bool EliminaAntesX(int REF)
+{
+    if (P == null || P.INFO == REF) return false;
+
+    Nodo Q = P; // Nodo de Referencia
+    Nodo T = null; // Nodo a Eliminar
+    Nodo R = null; // Nodo Anterior al de Eliminar
+
+    while (Q != null && Q.INFO != REF)
+    {
+        R = T;
+        T = Q;
+        Q = Q.LIGA;
+    }
+
+    if (Q == null) return false; // REF no encontrado
+
+    if (T == P) // T (a eliminar) es el primer nodo
+    {
+        P = Q; // P salta a REF (Q)
+    }
+    else // T es intermedio
+    {
+        R.LIGA = Q; // R salta a Q
+    }
+    return true;
+}
+        `;
+        
+        const pseudocodigoEliminaDespuesX = `
+// Operación: Eliminar el nodo DESPUÉS de REFERENCIA (Q)
+1. SI (P = NILL) RETORNAR ERROR
+2. Q=P, BAND=TRUE
+3. REPETIR MIENTRAS (Q^.INFO <> REF) Y (Q^.LIGA <> NILL)
+4.     Q=Q^.LIGA
+5. FIN_CICLO
+6. SI (Q^.INFO <> REF) O (Q^.LIGA = NILL) RETORNAR ERROR // REF no encontrado o es el último
+7. W = Q^.LIGA // Nodo a eliminar
+8. Q^.LIGA = W^.LIGA // Q salta al siguiente de W
+9. QUITA(W)
+        `;
+        const csharpEliminaDespuesX = `
+// Método para eliminar el nodo posterior a REF
+public bool EliminaDespuesX(int REF)
+{
+    if (P == null) return false;
+
+    Nodo Q = P; // Nodo de Referencia
+
+    while (Q != null && Q.INFO != REF)
+    {
+        Q = Q.LIGA;
+    }
+
+    if (Q == null || Q.LIGA == null) return false; // REF no encontrado o es el último
+
+    Nodo W = Q.LIGA; // Nodo a eliminar
+    Q.LIGA = W.LIGA; // Q salta a W.LIGA
+    
+    return true;
+}
+        `;
+        
+        // --- Utilidades ---
+        const pseudocodigoBuscarX = `
+// Operación: Búsqueda de un Elemento
+1. Q=P
+2. REPETIR MIENTRAS Q <> NILL
+3.     SI Q^.INFORMACION = X
+4.         ESCRIBIR “ EL ELEMENTO ESTA EN LA LISTA”
+5.         RETORNAR
+6.     Q=Q^.LIGA
+7. FIN_CICLO
+8. ESCRIBIR “ELEMENTO NO FUE ENCONTRADO”
+        `;
+        const csharpBuscarX = `
+// Método para buscar un elemento
+public bool Busqueda(int X)
+{
+    Nodo Q = P;
+    while (Q != null)
+    {
+        if (Q.INFO == X)
+        {
+            return true;
         }
+        Q = Q.LIGA;
+    }
+    return false;
+}
+        `;
+        
+        const pseudocodigoRecorrido = `
+// Operación: Recorrido / Mostrar Lista
+1. Q = P
+2. REPETIR MIENTRAS Q <> NILL
+3.     ESCRIBIR Q^.INFORMACION
+4.     Q = Q^.LIGA
+5. FIN_CICLO
+        `;
+        const csharpRecorrido = `
+// Método para mostrar la lista
+public void MostrarLista()
+{
+    Nodo Q = P;
+    Console.WriteLine("Elementos de la lista:");
+    while(Q != null)
+    {
+        Console.WriteLine(Q.INFO);
+        Q = Q.LIGA;
+    }
+}
+        `;
+        
+        const pseudocodigoVaciar = `
+// Operación: Vaciar Lista
+1. P = NILL
+2. RETORNAR Exitoso
+        `;
+        const csharpVaciar = `
+// Método para vaciar (limpiar) la lista
+public void Vaciar() 
+{
+    P = null; 
+}
+        `;
+        
+        // --- Event Listeners ---
+        
+        document.getElementById('btnInsertarInicio').addEventListener('click', () => {
+            const valor = parseInt(valorDatoInput.value);
+            if (isNaN(valor)) { showResult('¡Error! Ingrese un DATO numérico válido.', true); return; }
+            lista.insertarInicio(valor);
+            updateVisualizacion();
+            showPseudocodigo(pseudocodigoInsertarInicio);
+            showCSharpCode(csharpInsertarInicio);
+            showResult(`DATO ${valor} insertado al INICIO.`);
+        });
+
+        document.getElementById('btnInsertarFinal').addEventListener('click', () => {
+            const valor = parseInt(valorDatoInput.value);
+            if (isNaN(valor)) { showResult('¡Error! Ingrese un DATO numérico válido.', true); return; }
+            lista.insertarFinal(valor);
+            updateVisualizacion();
+            showPseudocodigo(pseudocodigoInsertarFinal);
+            showCSharpCode(csharpInsertarFinal);
+            showResult(`DATO ${valor} insertado al FINAL.`);
+        });
+        
+        document.getElementById('btnInsertaAntesX').addEventListener('click', () => {
+            const dato = parseInt(valorDatoInput.value);
+            const refX = parseInt(valorReferenciaInput.value);
+            if (isNaN(dato) || isNaN(refX)) { showResult('¡Error! Ingrese DATO y REFERENCIA numéricos válidos.', true); return; }
+            
+            const exito = lista.insertarAntesX(dato, refX);
+            updateVisualizacion(refX);
+            showPseudocodigo(pseudocodigoInsertaAntesX);
+            showCSharpCode(csharpInsertaAntesX);
+            
+            if (exito) {
+                showResult(`DATO ${dato} insertado ANTES de la REFERENCIA ${refX}.`);
+            } else {
+                showResult(`¡Error! La REFERENCIA ${refX} no fue encontrada o es el primer nodo.`, true);
+            }
+        });
+
+        document.getElementById('btnInsertaDespuesX').addEventListener('click', () => {
+            const dato = parseInt(valorDatoInput.value);
+            const refX = parseInt(valorReferenciaInput.value);
+            if (isNaN(dato) || isNaN(refX)) { showResult('¡Error! Ingrese DATO y REFERENCIA numéricos válidos.', true); return; }
+            
+            const exito = lista.insertarDespuesX(dato, refX);
+            updateVisualizacion(refX);
+            showPseudocodigo(pseudocodigoInsertaDespuesX);
+            showCSharpCode(csharpInsertaDespuesX);
+            
+            if (exito) {
+                showResult(`DATO ${dato} insertado DESPUÉS de la REFERENCIA ${refX}.`);
+            } else {
+                showResult(`¡Error! La REFERENCIA ${refX} no fue encontrada.`, true);
+            }
+        });
+
+        // --- Eventos de Eliminación ---
+
+        document.getElementById('btnEliminarInicio').addEventListener('click', () => {
+            const exito = lista.eliminarInicio();
+            if (exito) {
+                updateVisualizacion();
+                showPseudocodigo(pseudocodigoEliminarInicio);
+                showCSharpCode(csharpEliminarInicio);
+                showResult(`Primer nodo eliminado exitosamente.`);
+            } else {
+                showResult('¡Error! La lista está vacía.', true);
+            }
+        });
+
+        document.getElementById('btnEliminarFinal').addEventListener('click', () => {
+            const exito = lista.eliminarFinal();
+            if (exito) {
+                updateVisualizacion();
+                showPseudocodigo(pseudocodigoEliminarFinal);
+                showCSharpCode(csharpEliminarFinal);
+                showResult(`Último nodo eliminado exitosamente.`);
+            } else {
+                showResult('¡Error! La lista está vacía.', true);
+            }
+        });
+
+        document.getElementById('btnEliminarNodoX').addEventListener('click', () => {
+            const valorX = parseInt(valorDatoInput.value);
+            if (isNaN(valorX)) { showResult('¡Error! Ingrese el DATO (X) a eliminar.', true); return; }
+
+            const exito = lista.eliminarNodoX(valorX);
+            updateVisualizacion();
+            showPseudocodigo(pseudocodigoEliminarNodoX);
+            showCSharpCode(csharpEliminarNodoX);
+
+            if (exito) {
+                showResult(`Nodo con DATO ${valorX} eliminado exitosamente.`);
+            } else {
+                showResult(`¡Error! Nodo con DATO ${valorX} no encontrado o lista vacía.`, true);
+            }
+        });
+        
+        document.getElementById('btnEliminaAntesX').addEventListener('click', () => {
+            const refX = parseInt(valorReferenciaInput.value);
+            if (isNaN(refX)) { showResult('¡Error! Ingrese la REFERENCIA numérica válida.', true); return; }
+
+            const exito = lista.eliminarAntesX(refX);
+            updateVisualizacion(refX);
+            showPseudocodigo(pseudocodigoEliminaAntesX);
+            showCSharpCode(csharpEliminaAntesX);
+
+            if (exito) {
+                showResult(`Nodo ANTES de la REFERENCIA ${refX} eliminado exitosamente.`);
+            } else {
+                showResult(`¡Error! La REFERENCIA ${refX} no fue encontrada o es el primer nodo.`, true);
+            }
+        });
+
+        document.getElementById('btnEliminaDespuesX').addEventListener('click', () => {
+            const refX = parseInt(valorReferenciaInput.value);
+            if (isNaN(refX)) { showResult('¡Error! Ingrese la REFERENCIA numérica válida.', true); return; }
+
+            const exito = lista.eliminarDespuesX(refX);
+            updateVisualizacion(refX);
+            showPseudocodigo(pseudocodigoEliminaDespuesX);
+            showCSharpCode(csharpEliminaDespuesX);
+
+            if (exito) {
+                showResult(`Nodo DESPUÉS de la REFERENCIA ${refX} eliminado exitosamente.`);
+            } else {
+                showResult(`¡Error! La REFERENCIA ${refX} no fue encontrada o es el último nodo.`, true);
+            }
+        });
+
+        // --- Eventos de Utilidades ---
+
+        document.getElementById('btnBuscarX').addEventListener('click', () => {
+            const valorX = parseInt(valorDatoInput.value);
+            if (isNaN(valorX)) { showResult('¡Error! Ingrese el DATO (X) a buscar.', true); return; }
+
+            const encontrado = lista.buscar(valorX);
+            updateVisualizacion(encontrado ? valorX : null);
+            showPseudocodigo(pseudocodigoBuscarX);
+            showCSharpCode(csharpBuscarX);
+
+            if (encontrado) {
+                showResult(`DATO ${valorX} ENCONTRADO en la lista.`);
+            } else {
+                showResult(`DATO ${valorX} NO ENCONTRADO en la lista.`, true);
+            }
+            setTimeout(() => updateVisualizacion(null), 3000); // Limpia la referencia visual después de 3s
+        });
+
+        document.getElementById('btnRecorrido').addEventListener('click', () => {
+            const recorrido = lista.mostrar();
+            showPseudocodigo(pseudocodigoRecorrido);
+            showCSharpCode(csharpRecorrido);
+            if (recorrido) {
+                showResult(`Recorrido: P → ${recorrido} → NULL`);
+            } else {
+                showResult('La lista está vacía.', true);
+            }
+            updateVisualizacion();
+        });
+        
+        document.getElementById('btnClear').addEventListener('click', () => {
+            lista.clear();
+            updateVisualizacion();
+            showPseudocodigo(pseudocodigoVaciar);
+            showCSharpCode(csharpVaciar);
+            showResult('La Lista ha sido VACIADA (P = NULL).');
+        });
+
+        // Inicializar la visualización
+        updateVisualizacion();
     </script>
 </body>
 </html>

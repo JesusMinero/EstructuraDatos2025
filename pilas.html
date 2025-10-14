@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Pilas (Stack)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        // Color específico para Pilas (verde/teal)
+                        stack: {
+                            50: '#f0fdf4',
+                            500: '#10b981', // Verde esmeralda
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-stack {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        }
+        .stack-visualization {
+            /* Estilo para que la pila se vea verticalmente */
+            display: flex;
+            flex-direction: column-reverse; /* Hace que el último elemento (tope) esté arriba */
+            align-items: center;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .stack-item {
+            /* Estilo visual para cada nodo/elemento */
+            width: 80px;
+            padding: 8px;
+            margin-bottom: 5px;
+            background-color: #f0fdf4;
+            border: 2px solid #059669;
+            text-align: center;
+            font-weight: bold;
+            color: #047857;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .stack-item-top {
+            border-color: #ef4444; /* Rojo para el tope */
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <header class="gradient-stack text-white">
+        <div class="container mx-auto px-4 py-8">
+            <a href="index.html" class="text-sm opacity-90 hover:opacity-100 transition duration-300">
+                <i class="fas fa-arrow-left mr-2"></i> Volver a Simuladores
+            </a>
+            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-2 flex items-center">
+                <i class="fas fa-layer-group text-white text-3xl mr-4"></i> Simulador de Pilas (Stack)
+            </h1>
+            <p class="text-xl opacity-90">Visualiza la estructura **LIFO** (Last In, First Out).</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-full">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 border-gray-200">Operaciones de la Pila 💻</h2>
+                
+                <div class="mb-6">
+                    <label for="valorPush" class="block text-sm font-medium text-gray-700 mb-2">Valor a Apilar (Push)</label>
+                    <input type="number" id="valorPush" placeholder="Escribe un número" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-stack-500 focus:border-stack-500" value="10">
+                </div>
+
+                <div class="space-y-4">
+                    <button id="btnPush" class="w-full bg-stack-600 hover:bg-stack-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-plus-circle mr-2"></i> Apilar (Push)
+                    </button>
+                    <button id="btnPop" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-minus-circle mr-2"></i> Desapilar (Pop)
+                    </button>
+                    <button id="btnPeek" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-eye mr-2"></i> Cima (Peek/Top)
+                    </button>
+                    <button id="btnIsEmpty" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-question-circle mr-2"></i> ¿Pila Vacía?
+                    </button>
+                    <button id="btnClear" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md">
+                        <i class="fas fa-trash-alt mr-2"></i> Vaciar Pila
+                    </button>
+                </div>
+
+                <div id="resultado" class="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700 font-medium hidden">
+                    Resultado de la Operación...
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-8">
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg h-96">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Visualización de la Pila 📊</h2>
+                    <div id="visualizacion" class="h-4/5 border-2 border-gray-300 rounded-lg p-4 bg-gray-50 stack-visualization">
+                        <div id="pilaVaciaMsg" class="text-gray-500 text-lg">Pila vacía (tope = NULL)</div>
+                    </div>
+                    <p class="text-center text-sm text-red-500 mt-2 font-bold">↑ TOPE (CIMA) / LIFO</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Pseudocódigo del Algoritmo 📜</h2>
+                    <pre id="pseudocodigo" class="bg-gray-800 text-green-300 p-4 rounded-lg overflow-x-auto text-sm mb-4">
+Presiona un botón para ver el pseudocódigo correspondiente a la operación.
+                    </pre>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-3 border-gray-200">Código de Implementación en C\# 💻</h2>
+                    <pre id="codigoCSharp" class="bg-gray-800 text-blue-300 p-4 rounded-lg overflow-x-auto text-sm">
+Presiona un botón para ver la implementación del método en C#.
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-400">
+            <p>&copy; 2025 Simulador de Pilas. Estructuras de Datos Lineales.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Clase Nodo (Basada en tu PPT) ---
+        class Nodo {
+            constructor(info) {
+                this.info = info;
+                this.sig = null;
+            }
+        }
+
+        // --- Clase Pila (Implementación con Lista Ligada) ---
+        class Pila {
+            constructor() {
+                this.tope = null; 
+                this.size = 0;
+            }
+
+            push(x) {
+                const nuevo = new Nodo(x);
+                if (this.tope === null) {
+                    this.tope = nuevo;
+                } else {
+                    nuevo.sig = this.tope;
+                    this.tope = nuevo;
+                }
+                this.size++;
+            }
+
+            pop() {
+                if (this.tope !== null) {
+                    const informacion = this.tope.info;
+                    this.tope = this.tope.sig;
+                    this.size--;
+                    return informacion;
+                } else {
+                    return null;
+                }
+            }
+
+            peek() {
+                if (this.tope !== null) {
+                    return this.tope.info;
+                } else {
+                    return null;
+                }
+            }
+
+            isEmpty() {
+                return this.tope === null;
+            }
+
+            clear() {
+                this.tope = null;
+                this.size = 0;
+            }
+        }
+
+        const pila = new Pila();
+        const visualizacionDiv = document.getElementById('visualizacion');
+        const resultadoDiv = document.getElementById('resultado');
+        const pseudocodigoDiv = document.getElementById('pseudocodigo');
+        const codigoCSharpDiv = document.getElementById('codigoCSharp');
+
+        // --- Funciones de Interfaz ---
+
+        function updateVisualizacion() {
+            visualizacionDiv.innerHTML = ''; 
+            let reco = pila.tope;
+            let index = 0;
+
+            if (pila.isEmpty()) {
+                visualizacionDiv.innerHTML = '<div id="pilaVaciaMsg" class="text-gray-500 text-lg">Pila vacía (tope = NULL)</div>';
+                return;
+            }
+
+            while (reco !== null) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'stack-item';
+                if (index === 0) {
+                    itemDiv.classList.add('stack-item-top');
+                }
+                itemDiv.textContent = reco.info;
+                visualizacionDiv.appendChild(itemDiv);
+                reco = reco.sig;
+                index++;
+            }
+        }
+
+        function showResult(message, isError = false) {
+            resultadoDiv.textContent = message;
+            resultadoDiv.classList.remove('hidden');
+            if (isError) {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 font-medium';
+            } else {
+                resultadoDiv.className = 'mt-6 p-4 rounded-lg bg-stack-50 border border-stack-200 text-sm text-stack-700 font-medium';
+            }
+            setTimeout(() => resultadoDiv.classList.add('hidden'), 5000);
+        }
+
+        function showPseudocodigo(codigo) {
+            pseudocodigoDiv.textContent = codigo;
+        }
+        
+        function showCSharpCode(codigo) { 
+            codigoCSharpDiv.textContent = codigo;
+        }
+
+        // --- Pseudocódigos ---
+        const pseudocodigoPush = `
+// Operación: Apilar (Push) / Insertar(X)
+1. CREAR Nuevo_Nodo
+2. Nuevo_Nodo.info <- X
+3. SI (tope = NULL)
+4.     Nuevo_Nodo.sig <- NULL
+5.     tope <- Nuevo_Nodo
+6. SINO
+7.     Nuevo_Nodo.sig <- tope // Enlaza el nuevo al nodo que estaba arriba
+8.     tope <- Nuevo_Nodo    // El nuevo nodo es ahora la cima
+9. FIN_SI
+        `;
+
+        const pseudocodigoPop = `
+// Operación: Desapilar (Pop) / Extraer()
+1. SI (tope != NULL)
+2.     Valor_Info <- tope.info
+3.     tope <- tope.sig // Desenlaza el nodo superior y lo descarta
+4.     RETORNAR Valor_Info
+5. SINO
+6.     RETORNAR Error (int.MaxValue)
+7. FIN_SI
+        `;
+        
+        const pseudocodigoPeek = `
+// Operación: Cima (Peek/Top)
+1. SI (tope != NULL)
+2.     RETORNAR tope.info // Devuelve el valor sin modificar la Pila
+3. SINO
+4.     RETORNAR Error (int.MaxValue)
+5. FIN_SI
+        `;
+
+        const pseudocodigoIsEmpty = `
+// Operación: ¿Pila Vacía?
+1. SI (tope = NULL)
+2.     RETORNAR VERDADERO
+3. SINO
+4.     RETORNAR FALSO
+5. FIN_SI
+        `;
+        
+        const pseudocodigoClear = `
+// Operación: Vaciar Pila (Limpiar)
+1. tope <- NULL
+2. RETORNAR Exitoso
+        `;
+        
+        // --- Código C# (Basado en tu PPT) ---
+        
+        const csharpPush = `
+// Método para insertar (apilar) un elemento
+public void Insertar(int x) 
+{
+    Nodo nuevo = new Nodo(); 
+    nuevo.info = x;          
+
+    if (tope == null)        
+    {
+        nuevo.sig = null;    
+        tope = nuevo;        
+    }
+    else
+    {
+        nuevo.sig = tope;    
+        tope = nuevo;        
+    }
+}
+        `;
+
+        const csharpPop = `
+// Método para extraer (desapilar) un elemento
+public int Extraer() 
+{
+    if (tope != null) 
+    {
+        int informacion = tope.info; 
+        tope = tope.sig;             
+        return informacion;          
+    }
+    else
+    {
+        // En caso de estar vacía, regresa el valor máximo permitido
+        return int.MaxValue;         
+    }
+}
+        `;
+        
+        const csharpPeek = `
+// Método para ver la cima (Peek/Top)
+public int Cima() 
+{
+    if (tope != null)
+    {
+        return tope.info; // Devuelve la información sin mover el tope
+    }
+    else
+    {
+        return int.MaxValue; // Pila vacía
+    }
+}
+        `;
+
+        const csharpIsEmpty = `
+// Método para verificar si está vacía
+public bool Vacia() 
+{
+    return tope == null; 
+}
+        `;
+        
+        const csharpClear = `
+// Método para limpiar (vaciar) la pila
+public void Limpiar() 
+{
+    // Al perder la referencia del nodo superior, el Garbage Collector se encarga de liberar el resto.
+    tope = null; 
+}
+        `;
+        
+        // --- Event Listeners ---
+        
+        document.getElementById('btnPush').addEventListener('click', () => {
+            const input = document.getElementById('valorPush');
+            const valor = parseInt(input.value);
+
+            if (isNaN(valor)) {
+                showResult('¡Error! Por favor, ingrese un número válido.', true);
+                return;
+            }
+            
+            pila.push(valor);
+            updateVisualizacion();
+            showPseudocodigo(pseudocodigoPush);
+            showCSharpCode(csharpPush);
+            showResult(`Se ha APILADO (PUSH) el valor ${valor} exitosamente. Nuevo tope: ${valor}`);
+            input.value = ''; 
+        });
+
+        document.getElementById('btnPop').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoPop);
+            showCSharpCode(csharpPop);
+            const valorExtraido = pila.pop();
+
+            if (valorExtraido !== null) {
+                updateVisualizacion();
+                const nuevoTope = pila.peek();
+                const mensajeTope = nuevoTope !== null ? `El nuevo tope es ${nuevoTope}.` : 'La pila ha quedado vacía.';
+                showResult(`Se ha DESAPILADO (POP) el valor ${valorExtraido}. ${mensajeTope}`);
+            } else {
+                showResult('¡Error! La Pila está vacía. No se puede desapilar (POP).', true);
+            }
+        });
+
+        document.getElementById('btnPeek').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoPeek);
+            showCSharpCode(csharpPeek);
+            const cima = pila.peek();
+
+            if (cima !== null) {
+                showResult(`El elemento en la CIMA (PEEK/TOP) es: ${cima}. La pila no fue modificada.`);
+            } else {
+                showResult('La Pila está vacía. No hay Cima (PEEK/TOP).', true);
+            }
+        });
+
+        document.getElementById('btnIsEmpty').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoIsEmpty);
+            showCSharpCode(csharpIsEmpty);
+            const vacia = pila.isEmpty();
+
+            if (vacia) {
+                showResult('La Pila está VACIÍA (TRUE).');
+            } else {
+                showResult('La Pila NO está vacía (FALSE).');
+            }
+        });
+        
+        document.getElementById('btnClear').addEventListener('click', () => {
+            showPseudocodigo(pseudocodigoClear);
+            showCSharpCode(csharpClear);
+            pila.clear();
+            updateVisualizacion();
+            showResult('La Pila ha sido VACIADA (Limpiada).');
+        });
+
+        // Inicializar la visualización
+        updateVisualizacion();
+    </script>
+</body>
+</html>
